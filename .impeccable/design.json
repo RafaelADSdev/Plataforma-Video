@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-27T01:07:00-03:00",
+  "title": "Design System: Sala do Curso",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Tinta Noturna", "canonical": "#172033", "tonalRamp": ["#111725", "#172033", "#313a4c", "#5b6475", "#8e96a3", "#bdc3cc", "#e1e4e9", "#f6f7f9"] },
+      "muted": { "role": "neutral", "displayName": "Texto Secundário", "canonical": "#5b6475", "tonalRamp": ["#172033", "#313a4c", "#5b6475", "#747d8c", "#8e96a3", "#bdc3cc", "#e1e4e9", "#f6f7f9"] },
+      "canvas": { "role": "neutral", "displayName": "Canvas Frio", "canonical": "#f6f7f9", "tonalRamp": ["#1b1d21", "#34373d", "#555960", "#7b8088", "#a6abb2", "#cdd1d6", "#e8eaed", "#f6f7f9"] },
+      "surface": { "role": "neutral", "displayName": "Branco de Superfície", "canonical": "#ffffff", "tonalRamp": ["#172033", "#5b6475", "#aeb7c6", "#d9dee7", "#eef1f5", "#f6f7f9", "#fbfcfd", "#ffffff"] },
+      "surface-muted": { "role": "neutral", "displayName": "Superfície Suave", "canonical": "#eef1f5", "tonalRamp": ["#172033", "#5b6475", "#aeb7c6", "#d9dee7", "#e1e4e9", "#eef1f5", "#f6f7f9", "#ffffff"] },
+      "border": { "role": "neutral", "displayName": "Divisor Frio", "canonical": "#d9dee7", "tonalRamp": ["#172033", "#5b6475", "#8e96a3", "#aeb7c6", "#cdd1d6", "#d9dee7", "#eef1f5", "#f6f7f9"] },
+      "border-strong": { "role": "neutral", "displayName": "Borda Forte", "canonical": "#aeb7c6", "tonalRamp": ["#172033", "#5b6475", "#8e96a3", "#aeb7c6", "#cdd1d6", "#d9dee7", "#eef1f5", "#f6f7f9"] },
+      "primary": { "role": "primary", "displayName": "Azul de Ação", "canonical": "#2457d6", "tonalRamp": ["#0d235a", "#12327e", "#1947bd", "#2457d6", "#547be1", "#8ba5eb", "#bdcbf2", "#e9efff"] },
+      "primary-hover": { "role": "primary", "displayName": "Azul Profundo", "canonical": "#1947bd", "tonalRamp": ["#0d235a", "#12327e", "#1947bd", "#2457d6", "#547be1", "#8ba5eb", "#bdcbf2", "#e9efff"] },
+      "primary-soft": { "role": "primary", "displayName": "Azul Suave", "canonical": "#e9efff", "tonalRamp": ["#0d235a", "#12327e", "#1947bd", "#2457d6", "#547be1", "#8ba5eb", "#bdcbf2", "#e9efff"] },
+      "success": { "role": "secondary", "displayName": "Verde de Conclusão", "canonical": "#16724a", "tonalRamp": ["#08291b", "#0e4930", "#16724a", "#3b8e68", "#72b192", "#a8d2bb", "#d2e9dc", "#e7f5ed"] },
+      "success-soft": { "role": "secondary", "displayName": "Verde Suave", "canonical": "#e7f5ed", "tonalRamp": ["#08291b", "#0e4930", "#16724a", "#3b8e68", "#72b192", "#a8d2bb", "#d2e9dc", "#e7f5ed"] },
+      "warning": { "role": "tertiary", "displayName": "Âmbar de Agenda", "canonical": "#8a5a00", "tonalRamp": ["#302000", "#573900", "#8a5a00", "#b47d19", "#d8a94e", "#edd08f", "#f8e8bb", "#fff4d6"] },
+      "warning-soft": { "role": "tertiary", "displayName": "Âmbar Suave", "canonical": "#fff4d6", "tonalRamp": ["#302000", "#573900", "#8a5a00", "#b47d19", "#d8a94e", "#edd08f", "#f8e8bb", "#fff4d6"] },
+      "danger": { "role": "tertiary", "displayName": "Vermelho de Falha", "canonical": "#b42318", "tonalRamp": ["#450b08", "#72120d", "#b42318", "#d34f45", "#e78780", "#efb6b1", "#f7d8d5", "#fff0ee"] },
+      "danger-soft": { "role": "tertiary", "displayName": "Vermelho Suave", "canonical": "#fff0ee", "tonalRamp": ["#450b08", "#72120d", "#b42318", "#d34f45", "#e78780", "#efb6b1", "#f7d8d5", "#fff0ee"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Título de Página", "purpose": "Nomeia o contexto atual sem ocupar a tela." },
+      "loginDisplay": { "displayName": "Lede de Login", "purpose": "Frase de entrada da sala, só na tela não autenticada." },
+      "emphasis": { "displayName": "Ênfase", "purpose": "Títulos intermediários, como continuar aula." },
+      "headline": { "displayName": "Título de Seção", "purpose": "Agrupa um bloco de trabalho: módulos, materiais, comunidade." },
+      "title": { "displayName": "Título de Item", "purpose": "Nomeia um módulo, aula ou tópico dentro de uma lista." },
+      "body": { "displayName": "Texto de Trabalho", "purpose": "Leitura de aula, comunidade, formulário e estado." },
+      "label": { "displayName": "Label Visível", "purpose": "Identifica campos e ações sem depender de placeholder." },
+      "meta": { "displayName": "Metadado", "purpose": "Arquivo, data, papel e dica auxiliar." },
+      "caption": { "displayName": "Legenda", "purpose": "Texto menor em listas e cartões." },
+      "badge": { "displayName": "Badge", "purpose": "Estado curto com texto inequívoco." }
+    },
+    "shadows": [
+      { "name": "overlay", "value": "0 12px 36px rgba(23, 32, 51, 0.14)", "purpose": "Objeto que sai do fluxo: modal da conversa e aviso flutuante de reordenação." },
+      { "name": "login-card", "value": "0 18px 40px rgba(23, 32, 51, 0.08)", "purpose": "Única elevação de cartão em repouso, no formulário de login." }
+    ],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Chegada de estado, overlay e listas que assentam." },
+      { "name": "ease-in", "value": "cubic-bezier(0.4, 0, 1, 1)", "purpose": "Saída mais rápida que a entrada." },
+      { "name": "duration-fast", "value": "140ms", "purpose": "Feedback imediato: hover, foco, compressão do clique." },
+      { "name": "duration", "value": "200ms", "purpose": "Mudança de estado de rotina e mensagens de formulário." },
+      { "name": "duration-overlay", "value": "320ms", "purpose": "Abertura e fechamento da conversa da entrega." },
+      { "name": "settle-in", "value": "380ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Módulos, tópicos e login assentam; atraso máximo de 200ms entre irmãos." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "560px" },
+      { "name": "page-compact", "value": "720px" },
+      { "name": "single-column", "value": "760px" },
+      { "name": "login-stack", "value": "840px" },
+      { "name": "side-panels", "value": "860px" },
+      { "name": "header-wrap", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação principal da tarefa atual.",
+      "html": "<button class=\"ds-btn-primary\">Salvar alterações</button>",
+      "css": ".ds-btn-primary{min-height:2.75rem;padding:.68rem 1.05rem;background:#2457d6;color:#fff;font:700 1rem/1.2 system-ui;border:1px solid #2457d6;border-radius:.4rem;cursor:pointer;transition:background-color 140ms cubic-bezier(.16,1,.3,1),border-color 140ms cubic-bezier(.16,1,.3,1),transform 140ms cubic-bezier(.16,1,.3,1)}.ds-btn-primary:hover{background:#1947bd;border-color:#1947bd}.ds-btn-primary:active{transform:scale(.98)}.ds-btn-primary:focus-visible{outline:3px solid rgba(36,87,214,.38);outline-offset:3px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ação disponível sem competir com a principal.",
+      "html": "<button class=\"ds-btn-secondary\">Editar aula</button>",
+      "css": ".ds-btn-secondary{min-height:2.75rem;padding:.68rem 1.05rem;background:#fff;color:#172033;font:700 1rem/1.2 system-ui;border:1px solid #aeb7c6;border-radius:.4rem;cursor:pointer;transition:background-color 140ms cubic-bezier(.16,1,.3,1),border-color 140ms cubic-bezier(.16,1,.3,1),transform 140ms cubic-bezier(.16,1,.3,1)}.ds-btn-secondary:hover{background:#eef1f5;border-color:#172033}.ds-btn-secondary:active{transform:scale(.98)}.ds-btn-secondary:focus-visible{outline:3px solid rgba(36,87,214,.38);outline-offset:3px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo de trabalho com label sempre visível.",
+      "html": "<label class=\"ds-field\">Título<input class=\"ds-input\" value=\"Introdução ao módulo\"></label>",
+      "css": ".ds-field{display:grid;gap:.42rem;color:#172033;font:700 .84rem/1.2 system-ui}.ds-input{min-height:2.75rem;padding:.68rem .82rem;color:#172033;background:#fff;border:1px solid #aeb7c6;border-radius:.4rem;font:400 1rem/1.55 system-ui;transition:border-color 140ms cubic-bezier(.16,1,.3,1)}.ds-input:hover{border-color:#5b6475}.ds-input:focus{border-color:#2457d6;outline:3px solid rgba(36,87,214,.2);outline-offset:1px}"
+    },
+    {
+      "name": "Active Navigation",
+      "kind": "nav",
+      "description": "Destino atual na navegação autenticada.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#\">Curso</a><a class=\"ds-active\" href=\"#\">Comunidade</a><a href=\"#\">Cronograma</a></nav>",
+      "css": ".ds-nav{display:flex;gap:.15rem;font:700 .88rem/1.2 system-ui}.ds-nav a{padding:.4rem .72rem;color:#5b6475;text-decoration:none;border-radius:.4rem;transition:color 140ms cubic-bezier(.16,1,.3,1),background-color 140ms cubic-bezier(.16,1,.3,1)}.ds-nav a:hover{color:#172033;background:#eef1f5}.ds-nav .ds-active{color:#1947bd;background:#e9efff}.ds-nav a:focus-visible{outline:3px solid rgba(36,87,214,.38);outline-offset:3px}"
+    },
+    {
+      "name": "Progress Badge",
+      "kind": "chip",
+      "refersTo": "badge-primary",
+      "description": "Estado curto acompanhado de texto inequívoco.",
+      "html": "<span class=\"ds-badge\">Em andamento</span>",
+      "css": ".ds-badge{display:inline-flex;width:max-content;padding:.28rem .58rem;color:#1947bd;background:#e9efff;border-radius:999px;font:750 .74rem/1.2 system-ui}"
+    },
+    {
+      "name": "Module Container",
+      "kind": "card",
+      "description": "Agrupa uma sequência real de aulas, sem sombra decorativa.",
+      "html": "<section class=\"ds-module\"><header>Módulo 1 · Fundamentos</header><div>Aula 1 · Boas-vindas</div></section>",
+      "css": ".ds-module{overflow:hidden;color:#172033;background:#fff;border:1px solid #d9dee7;border-radius:.9rem;font:400 1rem/1.55 system-ui}.ds-module header{padding:1.05rem 1.2rem;font-weight:700;background:#f8fafc;border-bottom:1px solid #d9dee7}.ds-module div{padding:.9rem 1.15rem}.ds-module:focus-within{outline:3px solid rgba(36,87,214,.2);outline-offset:2px}"
+    },
+    {
+      "name": "Submission Dialog",
+      "kind": "custom",
+      "description": "Conversa privada da entrega: sobe ao centro quando o professor ou o aluno abre o overlay.",
+      "html": "<div class=\"ds-dialog\"><p class=\"ds-kicker\">Entrega</p><h2>Conversa com Ana Souza</h2><p class=\"ds-meta\">Curriculo.pdf</p><button>Responder</button></div>",
+      "css": ".ds-dialog{width:min(22rem,100%);padding:1.05rem 1.1rem 1.15rem;color:#172033;background:#fff;border:1px solid #d9dee7;border-radius:.9rem;box-shadow:0 12px 36px rgba(23,32,51,.14);font:400 1rem/1.55 system-ui}.ds-kicker{margin:0;color:#5b6475;font:700 .78rem/1.2 system-ui;letter-spacing:.04em;text-transform:uppercase}.ds-dialog h2{margin:.1rem 0 0;font:700 1.2rem/1.25 system-ui}.ds-meta{margin:.45rem 0 1rem;color:#5b6475;font-size:.88rem}.ds-dialog button{min-height:2.75rem;padding:.68rem 1.05rem;background:#2457d6;color:#fff;font:700 1rem/1.2 system-ui;border:1px solid #2457d6;border-radius:.4rem;cursor:pointer}.ds-dialog button:hover{background:#1947bd}.ds-dialog button:focus-visible{outline:3px solid rgba(36,87,214,.38);outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Roteiro de Aula",
+    "overview": "A interface se comporta como um roteiro bem preparado: ordem explícita, anotações legíveis e sinais suficientes para localizar o próximo passo. A expressão aparece na tipografia, no espaçamento e nos estados, não em ilustrações, efeitos ou superfícies decorativas.\n\nÉ uma aplicação de operação frequente. Controles seguem convenções da web, a leitura permanece estável em sessões longas e cada papel recebe somente as ações relevantes.",
+    "keyCharacteristics": [
+      "Hierarquia imediata entre contexto, conteúdo e ação.",
+      "Densidade moderada, com listas eficientes e áreas de leitura confortáveis.",
+      "Um acento principal raro; sucesso, alerta e erro aparecem apenas quando carregam significado.",
+      "Estados comunicados por texto, ícone ou forma além da cor."
+    ],
+    "rules": [
+      { "name": "Signal-Only", "body": "Cor existe para ação, foco ou estado; nunca para preencher áreas sem função.", "section": "colors" },
+      { "name": "Plain-Language", "body": "Títulos nomeiam a tarefa ou o conteúdo; labels e mensagens de erro dizem exatamente o que aconteceu e o próximo passo.", "section": "typography" },
+      { "name": "Flat-by-Default", "body": "Cartões de conteúdo não flutuam por decoração; profundidade corresponde a uma relação espacial real.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do priorizar ordem, estado e próxima ação em cada tela.",
+      "Do manter labels visíveis, áreas clicáveis confortáveis e foco evidente.",
+      "Do usar mensagens e estados vazios úteis em pt-BR.",
+      "Do preservar a mesma linguagem entre desktop e mobile."
+    ],
+    "donts": [
+      "Don't usar gradientes, vidro, brilho, ilustrações, parallax, bounce ou scroll-reveal de seções.",
+      "Don't transformar módulos, aulas ou respostas em um mural de cartões sem hierarquia.",
+      "Don't depender somente de cor para distinguir papel, progresso ou publicação.",
+      "Don't criar navegação, telas ou ações fora do recorte funcional confirmado."
+    ]
+  }
+}

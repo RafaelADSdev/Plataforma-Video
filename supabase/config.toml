@@ -1,0 +1,17 @@
+project_id = "plataforma-de-aulas"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://127.0.0.1:3000"]
+jwt_expiry = 3600
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+# This flag enables the email/password provider itself. Public account creation
+# remains disabled by auth.enable_signup above; setting this to false would also
+# break password login for users provisioned through Auth Admin.
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false

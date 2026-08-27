@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# testing
+/coverage
+
+# local env files
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# supabase CLI cache
+supabase/.temp/
+
+# typescript
+*.tsbuildinfo
+
+# misc
+.DS_Store
+Thumbs.db
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
