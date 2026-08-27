@@ -8,9 +8,6 @@ export const metadata: Metadata = { title: "Entrar" };
 export default function LoginPage() {
   return (
     <main className="login-shell">
-      <div className="login-theme">
-        <ThemeToggle />
-      </div>
       <div className="login-stage">
         <aside className="login-intro">
           <p className="login-brand">
@@ -26,6 +23,9 @@ export default function LoginPage() {
           </div>
           <LoginForm />
         </section>
+      </div>
+      <div className="login-theme">
+        <ThemeToggle />
       </div>
     </main>
   );

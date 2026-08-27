@@ -12,6 +12,8 @@ colors:
   primary: "#2457d6"
   primary-hover: "#1947bd"
   primary-soft: "#e9efff"
+  primary-button: "#2457d6"
+  primary-button-hover: "#1947bd"
   success: "#16724a"
   success-soft: "#e7f5ed"
   warning: "#8a5a00"
@@ -27,10 +29,10 @@ typography:
     letterSpacing: "-0.038em"
   loginDisplay:
     fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(2.1rem, 4.6vw, 3.35rem)"
-    fontWeight: 750
-    lineHeight: 1.08
-    letterSpacing: "-0.04em"
+    fontSize: "clamp(1.35rem, 2.6vw, 1.85rem)"
+    fontWeight: 700
+    lineHeight: 1.32
+    letterSpacing: "-0.03em"
   emphasis:
     fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
     fontSize: "clamp(1.35rem, 2.2vw, 1.7rem)"
@@ -137,13 +139,13 @@ A interface se comporta como um roteiro bem preparado: ordem explícita, anotaç
 
 Estratégia restrita: Canvas Frio sustenta a página, Branco de Superfície agrupa conteúdo e Tinta Noturna carrega o texto. Azul de Ação identifica links, foco e ações principais; Verde de Conclusão, Âmbar de Agenda e Vermelho de Falha ficam reservados a estados reais. Os valores normativos estão no frontmatter.
 
-O modo escuro inverte o canvas para Noite de Estudo (`#10141c`) e o texto para Tinta Clara (`#e8ebf1`), mantendo o mesmo azul de ação um pouco mais claro. A troca parte do botão de tema como um círculo que cobre a tela; quem pede movimento reduzido recebe a troca instantânea.
+O modo escuro inverte o canvas para Noite de Estudo (`#10141c`) e o texto para Tinta Clara (`#e8ebf1`). Links, foco e o caderno da marca usam um azul de ação um pouco mais claro (`#5b87ee`) sobre o canvas escuro. O botão primário conserva o Azul de Ação sólido (`#2457d6`) com texto branco, para manter contraste ≥4,5:1. A troca parte do botão de tema como um círculo que cobre a tela; quem pede movimento reduzido recebe a troca instantânea.
 
 **The Signal-Only Rule.** Cor existe para ação, foco ou estado; nunca para preencher áreas sem função.
 
 ## Typography
 
-Duas famílias com papéis fixos. **Manrope** carrega display, títulos, marca, botões, labels, badges e números de posição. **Inter** carrega corpo, descrições, campos e metadados. Display chega a 2.45rem nas telas autenticadas e a 3.35rem no lede de login; títulos de seção ficam em torno de 1.42rem; corpo permanece 1rem com line-height 1.55. Números de tempo e posição usam algarismos tabulares. Textos longos ficam limitados a 72ch.
+Duas famílias com papéis fixos. **Manrope** carrega display, títulos, marca, botões, labels, badges e números de posição. **Inter** carrega corpo, descrições, campos e metadados. Display chega a 2.45rem nas telas autenticadas; o lede de login fica em torno de 1.85rem com line-height 1.32, para a tarefa do cartão liderar a leitura. Títulos de seção ficam em torno de 1.42rem; corpo permanece 1rem com line-height 1.55. Números de tempo e posição usam algarismos tabulares. Textos longos ficam limitados a 72ch.
 
 **The Plain-Language Rule.** Títulos nomeiam a tarefa ou o conteúdo; labels e mensagens de erro dizem exatamente o que aconteceu e o próximo passo.
 
@@ -167,7 +169,7 @@ Cantos de 0.4rem pertencem a controles, 0.65rem a agrupamentos médios e 0.9rem 
 
 ### Buttons
 
-- **Primary:** Azul de Ação, texto branco, altura mínima de 2.75rem e peso 700.
+- **Primary:** Azul de Ação sólido (`#2457d6`) com texto branco, altura mínima de 2.75rem e peso 700. No modo escuro o preenchimento do botão permanece esse azul; o azul mais claro (`#5b87ee`) fica para links e foco.
 - **Secondary:** superfície branca, borda forte e texto de Tinta Noturna.
 - **Ghost:** sem borda em repouso; fundo azul suave apenas no hover.
 - **Focus:** anel azul translúcido de 3px, separado por 3px.
@@ -183,7 +185,7 @@ Cantos de 0.4rem pertencem a controles, 0.65rem a agrupamentos médios e 0.9rem 
 
 - **Style:** fundo branco, borda forte, altura mínima de 2.75rem e canto de 0.4rem.
 - **Focus:** borda Azul de Ação mais anel externo azul translúcido.
-- **Error:** mensagem Vermelho de Falha sobre Vermelho Suave, sempre textual.
+- **Error:** mensagem Vermelho de Falha sobre Vermelho Suave, sempre textual; o campo inválido também recebe borda vermelha.
 
 ### Navigation
 
