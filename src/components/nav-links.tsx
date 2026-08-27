@@ -15,9 +15,11 @@ export function NavLinks({ role }: { role: Role }) {
   const pathname = usePathname();
   const links = [
     ...commonLinks,
-    { href: "/notificacoes", label: "Notificações" },
     ...(role === "professor" || role === "admin"
-      ? [{ href: "/alunos", label: "Alunos" }]
+      ? [
+          { href: "/notificacoes", label: "Notificações" },
+          { href: "/alunos", label: "Alunos" },
+        ]
       : []),
     ...(role === "admin" ? [{ href: "/admin/users", label: "Admin" }] : []),
   ];

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Download, MessageCircle, X } from "lucide-react";
 import { SubmissionMessageForm } from "@/components/submission-message-form";
@@ -11,6 +11,8 @@ import { publicDisplayName } from "@/lib/profile-name";
 import { storageFileUrl } from "@/lib/storage";
 import { formatDateTimeInSaoPaulo } from "@/lib/time";
 import type { SubmissionMessage } from "@/types/domain";
+
+const subscribeToClient = () => () => {};
 
 export function SubmissionConversationDialog({
   lessonId,
@@ -31,11 +33,10 @@ export function SubmissionConversationDialog({
   messages: SubmissionMessage[];
   open: boolean;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const messagesEndRef = useRef<HTMLLIElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
   const [isOpen, setIsOpen] = useState(open);
   const titleId = useId();
   const title = isStaff ? `Conversa com ${studentName}` : "Conversa com o professor";
@@ -51,26 +52,24 @@ export function SubmissionConversationDialog({
     return query ? `${pathname}?${query}` : pathname;
   }
 
+  function syncConversationUrl(nextOpen: boolean) {
+    window.history.replaceState(null, "", conversationUrl(nextOpen));
+  }
+
   function openDialog() {
     setIsOpen(true);
-    dialogRef.current?.showModal();
-    router.replace(conversationUrl(true), { scroll: false });
+    syncConversationUrl(true);
   }
 
   function closeDialog() {
-    setIsOpen(false);
     const dialog = dialogRef.current;
-    if (dialog?.open) dialog.close();
-    router.replace(conversationUrl(false), { scroll: false });
+    if (dialog?.open) {
+      dialog.close();
+      return;
+    }
+    setIsOpen(false);
+    syncConversationUrl(false);
   }
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (open) setIsOpen(true);
-  }, [open]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -91,10 +90,10 @@ export function SubmissionConversationDialog({
         aria-labelledby={titleId}
         onClose={() => {
           setIsOpen(false);
-          router.replace(conversationUrl(false), { scroll: false });
+          syncConversationUrl(false);
         }}
         onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close();
+          if (event.target === event.currentTarget) closeDialog();
         }}
       >
         <div className="submission-dialog-shell">
@@ -171,7 +170,7 @@ export function SubmissionConversationDialog({
         <MessageCircle aria-hidden="true" size={16} />
         {triggerLabel}
       </button>
-      {mounted ? createPortal(dialog, document.body) : null}
+      {mounted && isOpen ? createPortal(dialog, document.body) : null}
     </>
   );
 }

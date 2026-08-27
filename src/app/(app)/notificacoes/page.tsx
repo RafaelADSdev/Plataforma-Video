@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Bell, CheckCircle2, MessageCircle, MessageCircleQuestion, Send } from "lucide-react";
 import { openNotificationAction } from "@/app/actions/notifications";
 import { EmptyState } from "@/components/empty-state";
-import { requireUser } from "@/lib/auth";
+import { requireProfessor } from "@/lib/auth";
 import { formatDateTimeInSaoPaulo } from "@/lib/time";
 import { createClient } from "@/lib/supabase/server";
 import type { Lesson, Notification, Thread } from "@/types/domain";
@@ -17,7 +17,7 @@ const typeInfo = {
 };
 
 export default async function NotificationsPage() {
-  const auth = await requireUser();
+  const auth = await requireProfessor();
   const supabase = await createClient();
   const { data } = await supabase
     .from("notifications")
@@ -33,15 +33,12 @@ export default async function NotificationsPage() {
   ]);
   const lessons = new Map(((lessonsData ?? []) as Pick<Lesson, "id" | "title">[]).map((item) => [item.id, item.title]));
   const threads = new Map(((threadsData ?? []) as Pick<Thread, "id" | "title">[]).map((item) => [item.id, item.title]));
-  const description = auth.isStaff
-    ? "Comentários, dúvidas, entregas e mensagens privadas que pedem a atenção da equipe."
-    : "Mensagens do professor sobre as suas entregas.";
 
   return (
     <main className="container page notifications-page">
-      <div className="page-header"><div><h1>Notificações</h1><p className="page-description">{description}</p></div></div>
+      <div className="page-header"><div><h1>Notificações</h1><p className="page-description">Comentários, dúvidas, entregas e mensagens privadas que pedem a atenção da equipe.</p></div></div>
       {notifications.length === 0 ? (
-        <EmptyState title="Você não tem notificações"><p>{auth.isStaff ? "Novos comentários, dúvidas, entregas e respostas aparecerão aqui." : "Quando o professor responder a sua entrega, o aviso aparece aqui."}</p></EmptyState>
+        <EmptyState title="Você não tem notificações"><p>Novos comentários, dúvidas, entregas e respostas aparecerão aqui.</p></EmptyState>
       ) : (
         <ol className="notification-list">
           {notifications.map((notification) => {

@@ -13,6 +13,7 @@ export function ActionForm({
   pendingLabel = "Salvando…",
   className = "form-grid",
   fieldLabels = {},
+  noValidate = false,
 }: {
   action: Action;
   children: React.ReactNode;
@@ -20,6 +21,7 @@ export function ActionForm({
   pendingLabel?: string;
   className?: string;
   fieldLabels?: Record<string, string>;
+  noValidate?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(action, initialActionState);
   const fieldErrors = Object.entries(state.fieldErrors ?? {}).filter(([, message]) => message);
@@ -36,8 +38,9 @@ export function ActionForm({
       ref={formRef}
       action={formAction}
       className={className}
+      noValidate={noValidate}
       onSubmit={(event) => {
-        if (!event.currentTarget.checkValidity()) return;
+        if (!noValidate && !event.currentTarget.checkValidity()) return;
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         startTransition(() => formAction(data));

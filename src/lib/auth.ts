@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type Role = "admin" | "professor" | "aluno";
@@ -47,12 +47,12 @@ export async function requireUser() {
 
 export async function requireProfessor() {
   const auth = await requireUser();
-  if (!auth.isStaff) redirect("/");
+  if (!auth.isStaff) forbidden();
   return auth;
 }
 
 export async function requireAdmin() {
   const auth = await requireUser();
-  if (!auth.isAdmin) redirect("/");
+  if (!auth.isAdmin) forbidden();
   return auth;
 }

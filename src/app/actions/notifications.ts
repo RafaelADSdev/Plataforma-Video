@@ -2,12 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireProfessor } from "@/lib/auth";
 import { postgresUuidSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 
 export async function openNotificationAction(notificationId: string) {
-  const auth = await requireUser();
+  const auth = await requireProfessor();
   if (!postgresUuidSchema().safeParse(notificationId).success) redirect("/notificacoes");
   const supabase = await createClient();
   const { data } = await supabase

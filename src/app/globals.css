@@ -807,6 +807,15 @@ h3 {
   transform: scale(0.96);
 }
 
+.icon-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.logout-spinner {
+  animation: logout-spin 750ms linear infinite;
+}
+
 .theme-icon-sun {
   display: none;
 }
@@ -911,6 +920,12 @@ html[data-theme="dark"] .theme-icon-moon {
 @keyframes pulse-soft {
   50% {
     opacity: 0.58;
+  }
+}
+
+@keyframes logout-spin {
+  to {
+    transform: rotate(1turn);
   }
 }
 

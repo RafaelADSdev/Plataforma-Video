@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import type { ActionState } from "@/lib/action-state";
@@ -37,6 +38,7 @@ export async function loginAction(_state: ActionState, formData: FormData): Prom
 
 export async function logoutAction() {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  await supabase.auth.signOut({ scope: "local" });
+  revalidatePath("/", "layout");
   redirect("/login");
 }

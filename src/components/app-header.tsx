@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { LogOut } from "lucide-react";
-import { logoutAction } from "@/app/actions/auth";
 import type { AuthContext } from "@/lib/auth";
 import { BrandMark } from "@/components/brand-mark";
+import { LogoutButton } from "@/components/logout-button";
 import { NavLinks } from "@/components/nav-links";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -27,11 +26,7 @@ export function AppHeader({ auth, displayName }: { auth: AuthContext; displayNam
             <span className="account-role">{roleLabels[auth.role]}</span>
           </span>
           <ThemeToggle />
-          <form action={logoutAction}>
-            <button className="icon-button" type="submit" aria-label="Sair da conta" title="Sair">
-              <LogOut aria-hidden="true" size={18} />
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </div>
     </header>

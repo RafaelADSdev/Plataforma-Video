@@ -44,7 +44,7 @@ export default async function UsersAdminPage() {
         <aside className="panel create-user-panel" aria-labelledby="create-user-title">
           <h2 id="create-user-title">Criar usuário</h2>
           <p className="muted">Defina uma senha inicial e compartilhe-a por um canal seguro.</p>
-          <ActionForm action={createUserAction} submitLabel="Criar conta" pendingLabel="Criando conta…" fieldLabels={{ email: "E-mail", password: "Senha inicial", display_name: "Nome", role: "Papel" }}>
+          <ActionForm action={createUserAction} submitLabel="Criar conta" pendingLabel="Criando conta…" fieldLabels={{ email: "E-mail", password: "Senha inicial", display_name: "Nome", role: "Papel" }} noValidate>
             <div className="field"><label htmlFor="user-email">E-mail</label><input className="input" id="user-email" name="email" type="email" autoComplete="off" required /></div>
             <div className="field"><label htmlFor="user-display-name">Nome</label><input className="input" id="user-display-name" name="display_name" autoComplete="off" maxLength={80} placeholder="Nome e sobrenome" /><p className="field-hint">Opcional. A pessoa também pode preencher depois no perfil.</p></div>
             <div className="field"><label htmlFor="user-password">Senha inicial</label><input className="input" id="user-password" name="password" type="password" autoComplete="new-password" minLength={8} required /><p className="field-hint">Pelo menos 8 caracteres.</p></div>
