@@ -1,0 +1,311 @@
+.login-shell {
+  --login-paper: #faf9f3;
+  --login-ink: #19372d;
+  --login-input: #fffef9;
+  --login-cta: #173e33;
+  --login-cta-hover: #245c49;
+  --login-cta-ink: #fffef9;
+  --login-content-width: 25rem;
+
+  min-height: 100svh;
+  color: var(--login-ink);
+  background: var(--login-paper);
+}
+
+html[data-theme="dark"] .login-shell {
+  --login-paper: var(--canvas);
+  --login-ink: var(--ink);
+  --login-input: var(--surface);
+  --login-cta: #d9efaa;
+  --login-cta-hover: #e9f6cc;
+  --login-cta-ink: #173e33;
+}
+
+.login-access {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100svh;
+  min-width: 0;
+  padding: max(1.25rem, env(safe-area-inset-top)) clamp(1.25rem, 6vw, 2.75rem)
+    max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.login-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+}
+
+.login-brand .brand-mark {
+  width: 2.625rem;
+}
+
+.login-header .theme-toggle {
+  background: var(--login-input);
+  border-color: var(--border);
+  border-radius: 50%;
+}
+
+.login-header .theme-toggle:hover {
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
+}
+
+.login-card,
+.login-install {
+  width: min(100%, var(--login-content-width));
+  justify-self: center;
+}
+
+.login-card {
+  display: grid;
+  align-self: center;
+  gap: 1.25rem;
+  padding-block: clamp(2.25rem, 7svh, 4.5rem) clamp(2rem, 5svh, 3.5rem);
+}
+
+.login-heading h1 {
+  margin-bottom: 0.625rem;
+  font-size: clamp(2.125rem, 4.8vw, 3rem);
+  line-height: 1.02;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
+}
+
+.login-heading p {
+  max-width: 36ch;
+  margin-bottom: 0;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.login-form {
+  gap: 1rem;
+}
+
+.login-form .field label {
+  font-family: var(--font-body);
+  font-weight: 650;
+}
+
+.login-field-control {
+  position: relative;
+}
+
+.login-field-icon {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0.9375rem;
+  color: var(--muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.login-form .input {
+  min-height: 3.375rem;
+  padding-inline-start: 2.75rem;
+  color: var(--login-ink);
+  background: var(--login-input);
+  border-radius: 0.6875rem;
+}
+
+.login-form .input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.login-password .input {
+  padding-inline-end: 5.75rem;
+}
+
+.login-password .input::-ms-reveal {
+  display: none;
+}
+
+.login-password-toggle {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 0.3125rem;
+  min-width: 4.75rem;
+  min-height: 2.75rem;
+  padding-inline: 0.625rem;
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 650;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 0.5rem;
+  transform: translateY(-50%);
+}
+
+.login-password-toggle:hover {
+  background: var(--primary-soft);
+}
+
+.login-password-toggle:focus-visible {
+  outline-offset: -2px;
+}
+
+.login-form .login-submit {
+  position: relative;
+  min-height: 3.375rem;
+  margin-top: 0.125rem;
+  padding-inline: 2.75rem;
+  color: var(--login-cta-ink);
+  background: var(--login-cta);
+  border-color: var(--login-cta);
+  border-radius: 0.6875rem;
+}
+
+.login-form .login-submit:hover:not(:disabled) {
+  background: var(--login-cta-hover);
+  border-color: var(--login-cta-hover);
+}
+
+.login-submit svg {
+  position: absolute;
+  inset-inline-end: 1.125rem;
+}
+
+.login-help summary,
+.login-install button {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 0.25rem;
+}
+
+.login-help summary::-webkit-details-marker {
+  display: none;
+}
+
+.login-help summary:hover,
+.login-install button:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.login-help[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.login-help p,
+.login-install-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.login-install {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.login-install button {
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+}
+
+.login-install-help p {
+  margin-bottom: 0.625rem;
+}
+
+.login-install-help p:last-child {
+  margin-bottom: 0;
+}
+
+.login-feature {
+  display: none;
+}
+
+@media (min-width: 52rem) {
+  .login-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+    gap: clamp(1rem, 2.5vw, 2.5rem);
+    padding: 1.25rem max(1.25rem, calc((100% - 112rem) / 2));
+  }
+
+  .login-access {
+    min-height: calc(100svh - 2.5rem);
+    padding: 1.25rem clamp(1rem, 3vw, 3rem) 0.75rem;
+  }
+
+  .login-heading h1 {
+    font-size: clamp(2.125rem, 3.3vw, 3rem);
+  }
+
+  .login-feature {
+    display: block;
+    overflow: hidden;
+    padding: clamp(2rem, 4.2vw, 4.5rem);
+    color: #f8f5e6;
+    background-color: #0b241b;
+    background-image: linear-gradient(180deg, rgb(6 26 19 / 0.52), transparent 57%), url("/login/livro-editorial.webp");
+    background-position: center, center 72%;
+    background-size: cover;
+    border-radius: 1.5rem;
+  }
+
+  .login-lede {
+    margin-bottom: 0.875rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.75rem, min(4.7vw, 8.5svh), 5.5rem);
+    font-weight: 650;
+    line-height: 0.93;
+    letter-spacing: -0.06em;
+  }
+
+  .login-lede em {
+    color: #dbedaa;
+    font-family: var(--font-login-serif), Georgia, serif;
+    font-size: 1.13em;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  .login-description {
+    max-width: 34ch;
+    margin-bottom: 0;
+    color: #e1e9d9;
+    font-size: 0.9375rem;
+    text-wrap: pretty;
+  }
+}
+
+@media (min-width: 52rem) and (min-aspect-ratio: 17/9) {
+  .login-feature {
+    background-image: linear-gradient(90deg, #0b241b 23%, transparent 54%),
+      linear-gradient(180deg, rgb(6 26 19 / 0.4), transparent 56%), url("/login/livro-editorial.webp");
+    background-position: center, center, right center;
+    background-repeat: no-repeat;
+    background-size: cover, cover, auto 115%;
+  }
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  .login-install {
+    display: none;
+  }
+}

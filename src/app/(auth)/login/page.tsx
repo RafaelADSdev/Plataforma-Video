@@ -1,41 +1,60 @@
 import type { Metadata } from "next";
-import { ArrowUpRight, BookOpen, ClipboardList } from "lucide-react";
+import { Instrument_Serif } from "next/font/google";
+import { ChevronDown } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { LoginForm } from "@/components/login-form";
+import { PwaInstall } from "@/components/pwa-install";
 import { ThemeToggle } from "@/components/theme-toggle";
+import "./login.css";
 
 export const metadata: Metadata = { title: "Entrar" };
 
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
+  variable: "--font-login-serif",
+  display: "swap",
+  preload: false,
+});
+
 export default function LoginPage() {
   return (
-    <main className="login-shell">
-      <div className="login-stage">
-        <aside className="login-intro">
+    <div className="login-shell">
+      <div className="login-access">
+        <a className="skip-link" href="#login-title">Pular para o acesso</a>
+        <header className="login-header">
           <p className="login-brand">
             <BrandMark />
             Sala do Curso
           </p>
-          <div className="login-intro-copy">
-            <p className="login-lede">Sua sala<br /> de estudo.</p>
-            <p className="login-description">Acesse as aulas e atividades do seu cursinho.</p>
-          </div>
-          <div className="login-illustration" aria-hidden="true">
-            <BookOpen size={34} strokeWidth={1.5} />
-            <ClipboardList size={35} strokeWidth={1.5} />
-            <ArrowUpRight size={36} strokeWidth={1.5} />
-          </div>
-        </aside>
-        <section className="login-card" aria-labelledby="login-title">
-          <div>
-            <h1 id="login-title">Entre na sua conta</h1>
-            <p className="page-description">Use o e-mail e a senha fornecidos pela organização.</p>
+          <ThemeToggle />
+        </header>
+
+        <main className="login-card" aria-labelledby="login-title">
+          <div className="login-heading">
+            <h1 id="login-title" tabIndex={-1}>Entre na sua conta</h1>
+            <p>Use o e-mail e a senha que a equipe do curso forneceu.</p>
           </div>
           <LoginForm />
-        </section>
+          <details className="login-help">
+            <summary>
+              Precisa de ajuda para entrar?
+              <ChevronDown size={16} aria-hidden="true" />
+            </summary>
+            <p>Fale com a equipe do curso para confirmar seu e-mail ou pedir uma nova senha.</p>
+          </details>
+        </main>
+
+        <PwaInstall />
       </div>
-      <div className="login-theme">
-        <ThemeToggle />
-      </div>
-    </main>
+
+      <aside className={`login-feature ${instrumentSerif.variable}`} aria-label="Sobre a Sala do Curso">
+        <div className="login-feature-copy">
+          <p className="login-lede">Seu cursinho,<br /><em>em um só lugar.</em></p>
+          <p className="login-description">Retome aulas, consulte materiais e acompanhe suas atividades.</p>
+        </div>
+      </aside>
+    </div>
   );
 }

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#173e33">
+    <title>Sem conexão | Sala do Curso</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body { margin: 0; padding: 2rem; display: grid; place-items: center; min-height: 100svh; box-sizing: border-box; background: #f6f4ee; color: #1b302a; font: 1rem/1.55 system-ui, sans-serif; }
+      main { width: min(100%, 28rem); }
+      .brand { margin: 0 0 2rem; font-weight: 700; }
+      h1 { margin: 0; font-size: clamp(2rem, 8vw, 3rem); line-height: 1.08; letter-spacing: -.04em; }
+      p { margin: 1rem 0 1.5rem; }
+      a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 1rem; border-radius: .625rem; color: #fff; background: #173e33; font-weight: 650; text-decoration: none; }
+      a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+      @media (prefers-color-scheme: light) { a:focus-visible { outline-color: #176054; } }
+      @media (prefers-color-scheme: dark) { body { background: #141e1a; color: #eaf1e9; } a { background: #d9efaa; color: #173e33; } a:focus-visible { outline-color: #d9efaa; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="brand">Sala do Curso</p>
+      <h1>Você está sem conexão</h1>
+      <p>Conecte-se à internet para entrar na Sala do Curso e acessar suas aulas e atividades.</p>
+      <a href="/">Voltar à Sala do Curso</a>
+    </main>
+  </body>
+</html>

@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { PwaWorker } from "@/components/pwa-worker";
 import { bricolage, inter } from "@/lib/fonts";
 import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
@@ -11,6 +12,13 @@ export const metadata: Metadata = {
     template: "%s | Sala do Curso",
   },
   description: "Ambiente de estudo do cursinho para acompanhar aulas e atividades.",
+  icons: {
+    apple: { url: "/icons/sala-180.png", sizes: "180x180", type: "image/png" },
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#173e33",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -19,6 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <Script id="theme-boot" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         {children}
+        <PwaWorker />
       </body>
     </html>
   );
