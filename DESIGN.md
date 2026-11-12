@@ -1,19 +1,20 @@
 ---
 name: Sala do Curso
-description: Interface operacional, clara e discreta para acompanhar e publicar aulas.
+description: Ambiente de estudo com retomada de aulas, atividades e gestão docente.
 colors:
-  ink: "#172033"
-  muted: "#5b6475"
-  canvas: "#f6f7f9"
-  surface: "#ffffff"
-  surface-muted: "#eef1f5"
-  border: "#d9dee7"
-  border-strong: "#aeb7c6"
-  primary: "#2457d6"
-  primary-hover: "#1947bd"
-  primary-soft: "#e9efff"
-  primary-button: "#2457d6"
-  primary-button-hover: "#1947bd"
+  ink: "#1b302a"
+  muted: "#52635b"
+  canvas: "#f6f4ee"
+  surface: "#fffefa"
+  surface-muted: "#eeede5"
+  border: "#dddcd1"
+  border-strong: "#8d998b"
+  primary: "#176054"
+  primary-hover: "#114b41"
+  primary-soft: "#e0eee4"
+  feature: "#153c36"
+  feature-accent: "#d9efaa"
+  on-primary: "#ffffff"
   success: "#16724a"
   success-soft: "#e7f5ed"
   warning: "#8a5a00"
@@ -22,201 +23,79 @@ colors:
   danger-soft: "#fff0ee"
 typography:
   display:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(1.7rem, 3.2vw, 2.45rem)"
+    fontFamily: "Bricolage Grotesque, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(2rem, 3.5vw, 3.15rem)"
     fontWeight: 750
     lineHeight: 1.12
     letterSpacing: "-0.038em"
   loginDisplay:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(1.35rem, 2.6vw, 1.85rem)"
+    fontFamily: "Bricolage Grotesque, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(3rem, 7vw, 7.75rem)"
     fontWeight: 700
-    lineHeight: 1.32
-    letterSpacing: "-0.03em"
+    lineHeight: 0.91
+    letterSpacing: "-0.07em"
   emphasis:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(1.35rem, 2.2vw, 1.7rem)"
+    fontFamily: "Bricolage Grotesque, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.95rem, 3.8vw, 3.4rem)"
     fontWeight: 700
-    lineHeight: 1.2
+    lineHeight: 1.03
+    letterSpacing: "-0.057em"
   headline:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "clamp(1.18rem, 1.8vw, 1.42rem)"
+    fontFamily: "Bricolage Grotesque, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(1.3rem, 1.9vw, 1.65rem)"
     fontWeight: 700
     lineHeight: 1.25
-    letterSpacing: "-0.03em"
-  title:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "1.05rem"
-    fontWeight: 700
-    lineHeight: 1.3
   body:
     fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.55
-  label:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.84rem"
-    fontWeight: 700
-    lineHeight: 1.2
-    letterSpacing: "-0.01em"
-  meta:
-    fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.88rem"
-    fontWeight: 400
-    lineHeight: 1.4
-  caption:
-    fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.78rem"
-    lineHeight: 1.35
-  badge:
-    fontFamily: "Manrope, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "0.74rem"
-    fontWeight: 750
 rounded:
-  sm: "0.4rem"
-  md: "0.65rem"
-  lg: "0.9rem"
+  sm: "0.5rem"
+  md: "0.75rem"
+  lg: "1.12rem"
   pill: "999px"
-spacing:
-  xs: "0.45rem"
-  sm: "0.75rem"
-  md: "1rem"
-  lg: "1.5rem"
-  xl: "2.5rem"
 components:
   button-primary:
     backgroundColor: "{colors.primary}"
-    textColor: "{colors.surface}"
+    textColor: "{colors.on-primary}"
     rounded: "{rounded.sm}"
-    padding: "0.68rem 1rem"
+    padding: "0.68rem 1.05rem"
     height: "2.75rem"
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.sm}"
-    padding: "0.68rem 1rem"
+    padding: "0.68rem 1.05rem"
     height: "2.75rem"
   input:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.ink}"
     rounded: "{rounded.sm}"
-    padding: "0.68rem 0.78rem"
+    padding: "0.68rem 0.82rem"
     height: "2.75rem"
   badge-primary:
     backgroundColor: "{colors.primary-soft}"
     textColor: "{colors.primary-hover}"
     rounded: "{rounded.pill}"
-    padding: "0.24rem 0.52rem"
 ---
 
-<!--
-THESIS: Uma sala de estudo que torna ordem, progresso e próxima ação óbvios; recusa o dashboard ornamental e a estética de marketing.
-OWN-WORLD: Base clara, tinta escura, Manrope no display e Inter no corpo, um único azul de ação, marca de roteiro em três linhas, estados semânticos discretos e controles familiares.
-STORY: O usuário identifica onde está, o estado de cada aula e a ação disponível; professor e aluno veem somente o que seu papel permite.
-FIRST VIEWPORT: Login em duas colunas (marca + lede / formulário); nas telas autenticadas, navegação compacta acima do cabeçalho de curso e da sequência de módulos.
-FORM: Aplicação operacional convencional, desktop primeiro, densidade moderada e adaptação direta para uma coluna no mobile; direção fixada pelo brief, sem conceito ornamental.
--->
+# Sala do Curso
 
-# Design System: Sala do Curso
+## Hierarquia
 
-## Overview
+O login usa um painel verde-petróleo com a identidade da sala e um formulário de acesso. No curso, o painel verde destaca a retomada para o aluno e a criação de conteúdo para o professor. A capa cadastrada ocupa a lateral desse painel. Na ausência de capa, a lateral usa os números reais de progresso ou conteúdo.
 
-**Creative North Star: "Roteiro de Aula"**
+Os módulos formam uma sequência de listas. Atividades pendentes e cronograma aparecem em painéis secundários. A sala de aula reúne o player e o índice do módulo, com navegação direta para materiais, atividades e comentários.
 
-A interface se comporta como um roteiro bem preparado: ordem explícita, anotações legíveis e sinais suficientes para localizar o próximo passo. A expressão aparece na tipografia, no espaçamento e nos estados, não em ilustrações, efeitos ou superfícies decorativas.
+## Tipografia e cor
 
-É uma aplicação de operação frequente. Controles seguem convenções da web, a leitura permanece estável em sessões longas e cada papel recebe somente as ações relevantes.
+Bricolage Grotesque dá escala aos títulos, marca e ações. Inter sustenta campos, descrições e leitura. Números de progresso e timestamps usam algarismos tabulares.
 
-**Key Characteristics:**
+O tema claro combina papel quente e superfícies marfim. O tema escuro usa fundo `#141e1a`, superfície `#1b2822` e texto `#eaf1e9`. Verde-petróleo identifica as ações e a navegação ativa. Estados de conclusão, agendamento, atraso e erro incluem texto visível.
 
-- Hierarquia imediata entre contexto, conteúdo e ação.
-- Densidade moderada, com listas eficientes e áreas de leitura confortáveis.
-- Um acento principal raro; sucesso, alerta e erro aparecem apenas quando carregam significado.
-- Estados comunicados por texto, ícone ou forma além da cor.
+## Layout e interação
 
-## Colors
+A navegação lateral mede 14 rem no desktop. Em até 780 px, um cabeçalho compacto acompanha a navegação inferior com Curso, Atividades, Cronograma e Mais. Em até 960 px, o índice da aula entra no fluxo e pode ser recolhido.
 
-Estratégia restrita: Canvas Frio sustenta a página, Branco de Superfície agrupa conteúdo e Tinta Noturna carrega o texto. Azul de Ação identifica links, foco e ações principais; Verde de Conclusão, Âmbar de Agenda e Vermelho de Falha ficam reservados a estados reais. Os valores normativos estão no frontmatter.
-
-O modo escuro inverte o canvas para Noite de Estudo (`#10141c`) e o texto para Tinta Clara (`#e8ebf1`). Links, foco e o caderno da marca usam um azul de ação um pouco mais claro (`#5b87ee`) sobre o canvas escuro. O botão primário conserva o Azul de Ação sólido (`#2457d6`) com texto branco, para manter contraste ≥4,5:1. A troca parte do botão de tema como um círculo que cobre a tela; quem pede movimento reduzido recebe a troca instantânea.
-
-**The Signal-Only Rule.** Cor existe para ação, foco ou estado; nunca para preencher áreas sem função.
-
-## Typography
-
-Duas famílias com papéis fixos. **Manrope** carrega display, títulos, marca, botões, labels, badges e números de posição. **Inter** carrega corpo, descrições, campos e metadados. Display chega a 2.45rem nas telas autenticadas; o lede de login fica em torno de 1.85rem com line-height 1.32, para a tarefa do cartão liderar a leitura. Títulos de seção ficam em torno de 1.42rem; corpo permanece 1rem com line-height 1.55. Números de tempo e posição usam algarismos tabulares. Textos longos ficam limitados a 72ch.
-
-**The Plain-Language Rule.** Títulos nomeiam a tarefa ou o conteúdo; labels e mensagens de erro dizem exatamente o que aconteceu e o próximo passo.
-
-## Layout
-
-O container central mede no máximo 74rem. Navegação e cabeçalhos permanecem compactos; conteúdo principal usa uma ou duas colunas apenas quando há relação clara, como aula e painel de entregas. Em 860px ou menos, painéis laterais voltam ao fluxo; em 760px ou menos, curso, módulos e listas convergem para uma coluna.
-
-O ritmo espacial usa poucos passos recorrentes: proximidade dentro de um item, separação clara entre grupos e respiro maior antes de um novo contexto. O player mantém 16:9 em qualquer viewport.
-
-## Elevation & Depth
-
-O sistema é predominantemente plano. Fundo, superfícies e bordas tonais estabelecem agrupamento. Sombras aparecem só quando um objeto se separa do fluxo: mensagens flutuantes de reordenação (`0 12px 36px rgba(23, 32, 51, 0.14)`) e o cartão de login (`0 18px 40px rgba(23, 32, 51, 0.08)`).
-
-**The Flat-by-Default Rule.** Cartões de conteúdo não flutuam por decoração; profundidade corresponde a uma relação espacial real.
-
-## Shapes
-
-Cantos de 0.4rem pertencem a controles, 0.65rem a agrupamentos médios e 0.9rem a superfícies principais. Pílulas de 999px ficam restritas a badges curtos de estado. Bordas de 1px e foco exterior de 3px preservam a leitura e a navegação por teclado.
-
-## Components
-
-### Buttons
-
-- **Primary:** Azul de Ação sólido (`#2457d6`) com texto branco, altura mínima de 2.75rem e peso 700. No modo escuro o preenchimento do botão permanece esse azul; o azul mais claro (`#5b87ee`) fica para links e foco.
-- **Secondary:** superfície branca, borda forte e texto de Tinta Noturna.
-- **Ghost:** sem borda em repouso; fundo azul suave apenas no hover.
-- **Focus:** anel azul translúcido de 3px, separado por 3px.
-
-### Cards / Containers
-
-- **Background:** Branco de Superfície sobre Canvas Frio.
-- **Corner Style:** 0.9rem nas superfícies principais.
-- **Border:** 1px de Divisor Frio; sombra ausente em repouso.
-- **Internal Padding:** entre 1rem e 1.5rem conforme densidade.
-
-### Inputs / Fields
-
-- **Style:** fundo branco, borda forte, altura mínima de 2.75rem e canto de 0.4rem.
-- **Focus:** borda Azul de Ação mais anel externo azul translúcido.
-- **Error:** mensagem Vermelho de Falha sobre Vermelho Suave, sempre textual; o campo inválido também recebe borda vermelha.
-
-### Navigation
-
-A marca é um livro aberto em um quadrado azul — o caderno da sala — ao lado do nome em Manrope. Links usam texto muted em repouso e Azul Profundo sobre Azul Suave no estado ativo. Em viewports estreitas, a navegação permanece horizontal com scroll, preservando todos os destinos e sem menu oculto adicional.
-
-### Status Badges
-
-Pílulas compactas unem texto e, quando útil, ícone. Conclusão, andamento e agendamento usam pares semânticos distintos e nunca aparecem somente como pontos coloridos.
-
-## Motion
-
-O caderno cede ao toque e abre espaço quando o foco muda. Movimento explica estado, não enfeita.
-
-- **Momento autoral:** a troca de tema expande um círculo a partir do botão; a conversa da entrega sobe ao centro (escala, opacidade e fundo).
-- **Continuidade:** módulos e tópicos da comunidade assentam em sequência curta (até 200 ms de atraso).
-- **Feedback:** botões comprimem no clique; navegação, linhas de aula, threads e tabelas suavizam cor e fundo.
-- Duração de rotina 140–200 ms; overlay 320 ms; curva `cubic-bezier(0.16, 1, 0.3, 1)`.
-- `prefers-reduced-motion` remove animações, atrasos e o compressão do clique.
-
-## Do's and Don'ts
-
-### Do:
-
-- **Do** priorizar ordem, estado e próxima ação em cada tela.
-- **Do** manter labels visíveis, áreas clicáveis confortáveis e foco evidente.
-- **Do** usar mensagens e estados vazios úteis em pt-BR.
-- **Do** preservar a mesma linguagem entre desktop e mobile.
-
-### Don't:
-
-- **Don't** usar gradientes, vidro, brilho, ilustrações, parallax, bounce ou scroll-reveal de seções.
-- **Don't** transformar módulos, aulas ou respostas em um mural de cartões sem hierarquia.
-- **Don't** depender somente de cor para distinguir papel, progresso ou publicação.
-- **Don't** criar navegação, telas ou ações fora do recorte funcional confirmado.
+Controles principais medem pelo menos 44 px de altura. O foco permanece visível e o link para pular ao conteúdo é o primeiro destino do teclado. A preferência de tema persiste no navegador, e as transições respeitam a configuração de movimento reduzido.

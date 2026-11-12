@@ -1,17 +1,17 @@
 # Sala do Curso
 
-V1 de uma plataforma de aulas para uma organização e um curso. Professores publicam e ordenam módulos e aulas com vídeo não listado do YouTube, PDFs, cronograma e entregas. Alunos assistem dentro do site, retomam do ponto salvo, registram progresso, comentam no tempo do vídeo e participam da comunidade. Administradores criam todas as contas; não existe cadastro público.
+Ambiente de estudo de um cursinho, com um curso por instalação. Professores organizam módulos, publicam aulas com vídeo privado e criam atividades de entrega ou questionários. Alunos retomam a aula do ponto salvo, respondem às atividades e acompanham o feedback. Administradores criam as contas.
 
 O projeto é independente do HubON e não reutiliza seu repositório, marca, rotas ou código.
 
-## Stack e limites da v1
+## Stack
 
 - Next.js App Router e TypeScript;
 - Supabase Auth por e-mail e senha, `@supabase/ssr`, Postgres com RLS e Storage;
 - Vercel para deploy;
-- YouTube IFrame Player API somente para reprodução e controle do player;
+- Cloudflare Stream para upload retomável, processamento e reprodução assinada;
 - uma instância, uma organização e um curso;
-- sem signup público, OAuth, magic link, convite por e-mail, Realtime, Edge Functions ou upload de vídeo.
+- e-mail e senha com cadastro público desabilitado.
 
 Os papéis são `admin`, `professor` e `aluno`. O papel fica em `app_metadata.role`; `admin` herda as permissões de professor.
 
@@ -20,6 +20,7 @@ Os papéis são `admin`, `professor` e `aluno`. O papel fica em `app_metadata.ro
 - Node.js 22 ou superior;
 - npm;
 - um projeto hospedado no Supabase;
+- uma conta com Cloudflare Stream ativo para publicar gravações;
 - acesso ao projeto na Vercel para o deploy;
 - Docker somente se quiser executar o Supabase localmente.
 
@@ -37,7 +38,7 @@ npx supabase db push --help
 Instale as dependências e copie o modelo de ambiente:
 
 ```bash
-npm install
+npm ci
 ```
 
 No PowerShell:
@@ -110,7 +111,7 @@ A migração inicial fica em `supabase/migrations/20260826000000_initial_course_
 - o curso único inicial com o título editável `Meu curso`;
 - os buckets privados `covers`, `avatars`, `materials` e `submissions` e suas policies.
 
-Não crie os buckets manualmente antes da migração. Depois do push, confirme em **Storage** que os quatro existem e continuam privados. Para avatar e entrega, as policies incluem `INSERT`, `SELECT` e `UPDATE`, pois a substituição usa upsert.
+As migrações seguintes criam os buckets privados de comunidade, feedback e materiais de atividade. Depois do push, confirme em **Storage** que todos os buckets continuam privados. Ao substituir uma entrega, o app envia um novo arquivo e troca a referência somente após validar o objeto no banco.
 
 Se o projeto estiver configurado para não expor automaticamente novas tabelas à Data API, confirme em **Settings → API → Data API** que o schema `public` está exposto e que os papéis `authenticated` têm os grants esperados. Isso é separado de RLS; mantenha ambos.
 
@@ -144,21 +145,24 @@ npm run check
 
 `npm run check` encadeia lint, verificação de tipos, testes e build. Para diagnosticar uma etapa isoladamente, use `npm run lint`, `npm run typecheck`, `npm test` ou `npm run build`.
 
-## 6. Deploy na Vercel
+## 6. Configurar vídeo privado
 
-1. Crie um projeto novo na Vercel apontando para este repositório novo.
-2. Configure o framework como Next.js.
-3. Cadastre em **Settings → Environment Variables**, para cada ambiente usado:
-   - `NEXT_PUBLIC_SUPABASE_URL`;
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`;
-   - `SUPABASE_URL`;
-   - `SUPABASE_SECRET_KEY` como valor sensível, nunca público.
-4. Aplique as migrações ao projeto Supabase correto antes do primeiro acesso ao app.
-5. Faça o deploy e repita os testes de permissão abaixo na URL de produção.
+1. Ative o Stream na conta Cloudflare e crie um token de API com permissão de edição do Stream nessa conta. Cadastre `CLOUDFLARE_ACCOUNT_ID` e `CLOUDFLARE_STREAM_API_TOKEN` no servidor.
+2. Copie o código do cliente do domínio do player para `CLOUDFLARE_STREAM_CUSTOMER_CODE`. Use somente a parte entre `customer-` e `.cloudflarestream.com`.
+3. Gere uma chave de assinatura no Stream. Configure os campos `id` e `jwk` devolvidos pela API em `CLOUDFLARE_STREAM_SIGNING_KEY_ID` e `CLOUDFLARE_STREAM_SIGNING_JWK`. O campo `jwk` já vem codificado em base64. [Chaves e reprodução assinada](https://developers.cloudflare.com/stream/viewing-videos/securing-your-stream/)
+4. Em `CLOUDFLARE_STREAM_ALLOWED_ORIGINS`, liste os domínios autorizados para aquele ambiente, sem protocolo e separados por vírgula. Exemplo `aulas.cursinho.com.br`. O limite padrão de duração por gravação é de quatro horas e pode ser ajustado com `CLOUDFLARE_STREAM_MAX_DURATION_SECONDS`.
+5. Crie uma aula em rascunho e envie um vídeo pela edição. Aguarde o estado **Gravação pronta**, publique e valide a reprodução com uma conta de aluno no domínio configurado.
 
-Não exponha a service role no navegador nem use um cliente SSR que compartilhe cookies do usuário como cliente administrativo. A criação de usuários precisa ocorrer em Server Action/Route Handler após verificar que a sessão pertence a um `admin`.
+### Atualizar uma instalação existente
 
-## Smoke test da v1
+1. Ensaie as migrações em homologação com uma cópia do esquema e amostras de aulas, arquivos, progresso e feedback. Separe as gravações originais ou exporte-as da conta proprietária no YouTube. [Exportação pelo YouTube](https://support.google.com/youtube/answer/56100?hl=pt-BR)
+2. Faça backup do banco e dos arquivos. Coordene a aplicação das novas migrações com a publicação do novo app na Vercel. A versão anterior usa colunas que mudaram.
+3. Na edição de cada aula existente, reenvie o arquivo original. Durante a transição, materiais e atividades continuam acessíveis e a aula informa que a gravação aguarda migração. O professor pode consultar a referência original na edição da aula.
+4. Após confirmar a reprodução privada com um aluno, altere o vídeo original para **Privado** no YouTube para desativar links antigos. [Visibilidade no YouTube](https://support.google.com/youtube/answer/157177?hl=pt-BR)
+
+Na Vercel, configure as variáveis de `.env.example` para cada ambiente. Use um projeto Supabase de homologação no preview e os valores de produção somente no deploy de produção.
+
+## Validação
 
 Use três navegadores/perfis separados para evitar confundir sessões. Registre o resultado e teste novamente depois de alterar Auth, RLS, Storage ou middleware.
 
@@ -167,25 +171,26 @@ Use três navegadores/perfis separados para evitar confundir sessões. Registre 
 - Sem sessão, abrir `/`, `/perfil`, `/comunidade` e uma aula redireciona para `/login`.
 - Uma tentativa direta de signup pela API do Supabase é recusada.
 - O primeiro admin entra e cria um professor e um aluno com e-mail, senha inicial e papel.
-- O aluno não abre `/admin/users` nem `/notificacoes`, não vê CTAs de edição e não consegue chamar as mutações correspondentes diretamente.
+- O aluno recebe as próprias notificações de feedback. As páginas de edição, o cadastro de usuários e as mutações de equipe recusam o papel aluno.
 - O professor abre `/notificacoes`, mas não `/admin/users`; o admin acessa ambos e herda as ações do professor.
 
 ### Curso, player e progresso
 
 - O professor troca capa e dados do curso, cria dois módulos e três aulas e reordena os dois níveis; o aluno recebe a mesma ordem após recarregar.
-- Uma URL não listada nos formatos `watch?v=`, `youtu.be/`, `embed/` e `shorts/` gera embed; uma URL inválida impede a publicação com erro em português.
-- O aluno pausa no meio, sai e volta: o player busca `lastSeconds`, mostra `Continuando de mm:ss` e a home oferece continuar da aula correta.
+- O professor interrompe o upload e seleciona o mesmo arquivo para retomá-lo. A publicação de uma aula nova com gravação aguarda o processamento.
+- O aluno pausa no meio, sai e volta. O player busca o ponto salvo e a home oferece **Retomar aula**.
 - O botão marca e desmarca visto; ao chegar a 90%, a aula fica vista automaticamente e não desmarca sozinha.
 - Uma aula com `publishedAt` futuro aparece como agendada para professor/admin e fica invisível para aluno, inclusive por acesso direto.
+- Consulte a Data API com a conta de aluno e verifique que `lesson_media` é inacessível. A emissão de autorização deve recusar sessões ausentes e aulas invisíveis. No Stream, valide que o UID avulso e um token expirado não reproduzem o vídeo.
 
 ### Comentários, materiais e entregas
 
 - O aluno comenta com o player em `01:15`; `01:15` aparece antes do texto e o link busca esse ponto do vídeo.
 - Uma aula sem vídeo aceita comentário sem timestamp.
 - O professor anexa PDF e o aluno consegue baixá-lo.
-- Sem `pedeEntrega`, a zona de entrega não aparece e o servidor recusa upload direto.
-- Com `pedeEntrega`, o aluno envia e substitui PDF, JPG, PNG ou WebP; outro tipo é recusado em português.
-- O professor abre a entrega; outro aluno não consegue listar, baixar ou sobrescrever esse arquivo.
+- O professor publica uma entrega avulsa e vincula um questionário a uma aula. O aluno encontra ambos em Atividades e abre o questionário também pela aula.
+- O aluno envia e substitui PDF, JPG, PNG ou WebP. O professor responde em privado e a notificação abre a conversa certa. Outro aluno não consegue listar, baixar ou sobrescrever o arquivo.
+- O questionário corrige no servidor e registra cada tentativa. Reenviar a mesma requisição devolve o resultado anterior. O gabarito só chega ao aluno após o envio e quando a configuração permite.
 
 ### Comunidade, cronograma, perfil e notificações
 
@@ -201,8 +206,4 @@ Use três navegadores/perfis separados para evitar confundir sessões. Registre 
 - Navegue por teclado: labels ficam visíveis, foco é perceptível, iframe tem `title` e timestamp usa `aria-label="Ir para mm:ss"`.
 - Teste uma viewport mobile: navegação, formulários, listas e player 16:9 continuam utilizáveis.
 
-## Definition of Done operacional
-
-A v1 está pronta somente quando o smoke test completo passa, `npm run check` termina sem erro, as migrações local/remota estão alinhadas, os quatro buckets estão privados, o signup público foi comprovadamente recusado e nenhum segredo aparece em código, bundle, log ou Git.
-
-Referências oficiais: [configuração geral do Auth](https://supabase.com/docs/guides/auth/general-configuration), [API administrativa `createUser`](https://supabase.com/docs/reference/javascript/auth-admin-createuser), [chaves do Supabase](https://supabase.com/docs/guides/getting-started/api-keys) e [workflow de migrações](https://supabase.com/docs/guides/local-development/cli-workflows).
+Referências oficiais do Supabase. [Configuração do Auth](https://supabase.com/docs/guides/auth/general-configuration) · [Criação administrativa de usuários](https://supabase.com/docs/reference/javascript/auth-admin-createuser) · [Chaves](https://supabase.com/docs/guides/getting-started/api-keys) · [Migrações](https://supabase.com/docs/guides/local-development/cli-workflows)
