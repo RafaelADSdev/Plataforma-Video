@@ -1,209 +1,125 @@
-# Sala do Curso
+<h1 align="center">Sala do Curso</h1>
 
-Ambiente de estudo de um cursinho, com um curso por instalação. Professores organizam módulos, publicam aulas com vídeo privado e criam atividades de entrega ou questionários. Alunos retomam a aula do ponto salvo, respondem às atividades e acompanham o feedback. Administradores criam as contas.
+<p align="center">
+  <strong>Uma sala de aula digital para cursinhos.</strong><br>
+  Aulas gravadas, exercícios e correções em um curso organizado por módulos.
+</p>
 
-O projeto é independente do HubON e não reutiliza seu repositório, marca, rotas ou código.
+<p align="center">
+  <a href="#como-funciona">Como funciona</a> ·
+  <a href="#rodar-localmente">Rodar localmente</a> ·
+  <a href="#vídeo-privado">Vídeo privado</a> ·
+  <a href="docs/DEPLOY.md">Guia de publicação</a>
+</p>
 
-## Stack
+![Painel do aluno com retomada da aula, progresso por módulo e atividades pendentes](docs/images/painel-aluno.png)
 
-- Next.js App Router e TypeScript;
-- Supabase Auth por e-mail e senha, `@supabase/ssr`, Postgres com RLS e Storage;
-- Vercel para deploy;
-- Cloudflare Stream para upload retomável, processamento e reprodução assinada;
-- uma instância, uma organização e um curso;
-- e-mail e senha com cadastro público desabilitado.
+*Capturas do app com dados de demonstração.*
 
-Os papéis são `admin`, `professor` e `aluno`. O papel fica em `app_metadata.role`; `admin` herda as permissões de professor.
+## Como funciona
 
-## Pré-requisitos
+Cada instalação atende **um cursinho e um curso**. A equipe organiza o conteúdo em módulos. A turma encontra a próxima aula, as atividades e o cronograma na mesma conta.
 
-- Node.js 22 ou superior;
-- npm;
-- um projeto hospedado no Supabase;
-- uma conta com Cloudflare Stream ativo para publicar gravações;
-- acesso ao projeto na Vercel para o deploy;
-- Docker somente se quiser executar o Supabase localmente.
+| Papel | O que pode fazer |
+| --- | --- |
+| **Aluno** | Retomar gravações no ponto salvo, acompanhar o progresso, consultar materiais, responder a questionários e receber feedback privado. |
+| **Professor** | Organizar módulos, salvar rascunhos, agendar publicações, enviar gravações privadas e acompanhar entregas e respostas. |
+| **Administrador** | Criar contas e exercer as permissões de professor. |
 
-Use uma versão recente do Supabase CLI. Antes de copiar comandos para automações, confira a versão e a ajuda da CLI:
+O professor pode publicar uma **atividade avulsa** no módulo ou **vinculá-la a uma aula**. Entregas aceitam PDF ou imagem e têm uma conversa privada para correções. Questionários são corrigidos no servidor e permitem configurar novas tentativas e exibição do gabarito. A turma também tem comunidade de dúvidas e um cronograma semanal que cada aluno pode adaptar.
+
+<table>
+  <tr>
+    <th>Atividades</th>
+    <th>Celular</th>
+  </tr>
+  <tr>
+    <td><img src="docs/images/atividades.png" alt="Atividades agrupadas por módulo com filtros de pendências e conclusões" width="600"></td>
+    <td><img src="docs/images/celular.png" alt="Tela inicial do aluno no celular com navegação inferior" width="190"></td>
+  </tr>
+</table>
+
+<details>
+  <summary>Ver a tela de entrada</summary>
+
+  ![Login da Sala do Curso com painel verde-petróleo e formulário de e-mail e senha](docs/images/entrada.png)
+</details>
+
+## Rodar localmente
+
+Use **Node.js 22+**, npm e Docker para executar o Supabase local. Para conectar a um projeto Supabase hospedado, siga o [guia de publicação](docs/DEPLOY.md#preparar-o-supabase).
+
+**1. Instale as dependências e inicie o banco local**
 
 ```bash
-npx supabase --version
-npx supabase --help
-npx supabase link --help
-npx supabase db push --help
-```
-
-## 1. Instalar e configurar o app
-
-Instale as dependências e copie o modelo de ambiente:
-
-```bash
+git clone https://github.com/RafaelADSdev/Plataforma-Video.git
+cd Plataforma-Video
 npm ci
+npx supabase start
+npx supabase status
 ```
 
-No PowerShell:
+O primeiro início aplica as migrações em `supabase/migrations`. Se a instância local já existir, use `npx supabase migration up --local` para aplicar as pendentes. [Supabase CLI](https://supabase.com/docs/guides/local-development/cli/getting-started)
 
-```powershell
-Copy-Item .env.example .env.local
-```
+**2. Configure o ambiente**
 
-No macOS ou Linux:
+Copie [`.env.example`](.env.example) para `.env.local`. Use `cp .env.example .env.local` no macOS ou Linux e `Copy-Item .env.example .env.local` no PowerShell.
 
-```bash
-cp .env.example .env.local
-```
+| Variável | Valor no desenvolvimento local |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL HTTP da API local exibida pelo Supabase. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Chave publishable da instância local. |
+| `SUPABASE_URL` | A mesma URL da API para as operações no servidor. |
+| `SUPABASE_SECRET_KEY` | Chave secret da instância local, usada pelo servidor e pelo bootstrap. |
 
-Preencha `.env.local` com valores do projeto Supabase:
+Aulas em texto e atividades funcionam com o Supabase. Para enviar gravações, configure também o [Cloudflare Stream](docs/DEPLOY.md#configurar-o-cloudflare-stream). Guarde as chaves de servidor em `.env.local` ou nas variáveis protegidas do ambiente.
 
-```dotenv
-NEXT_PUBLIC_SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
-SUPABASE_SECRET_KEY=sb_secret_...
-```
-
-Encontre a URL e as chaves em **Supabase Dashboard → projeto → Connect** ou em **Settings → API Keys**.
-
-- Use a publishable key (`sb_publishable_...`) no app. Em um projeto antigo, a chave legada `anon` também pode ser fornecida como valor de `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
-- O script de bootstrap e a criação administrativa de usuários usam `SUPABASE_SECRET_KEY` exclusivamente no servidor/CLI. `SUPABASE_SERVICE_ROLE_KEY` é aceito apenas como fallback para projetos legados.
-- `SUPABASE_URL` repete a URL intencionalmente para que o script privilegiado nunca dependa de uma variável `NEXT_PUBLIC_*`.
-
-Nunca coloque a service role em uma variável `NEXT_PUBLIC_*`, Client Component, log, commit ou mensagem. Ela ignora RLS. Consulte [docs/SECURITY.md](docs/SECURITY.md) antes do primeiro deploy.
-
-## 2. Desligar o cadastro público
-
-No projeto hospedado, abra **Authentication → Configuration → General** e desligue a opção global **Allow new users to sign up**. Em **Authentication → Sign In / Providers**, mantenha o provedor **Email** habilitado: ele é necessário para que as contas criadas pelo admin entrem com e-mail e senha. Não habilite anonymous sign-ins, OAuth, magic link ou convite por e-mail.
-
-Esse passo é obrigatório e não é substituído pela ausência de um formulário de cadastro no site. A distinção é importante: o bloqueio global impede novas contas públicas; o provedor Email ativo preserva o login das contas provisionadas pela API administrativa.
-
-Para desenvolvimento local, `supabase/config.toml` deve preservar estas opções:
-
-```toml
-[auth]
-enable_signup = false
-enable_anonymous_sign_ins = false
-
-[auth.email]
-# Mantém o provedor de e-mail/senha ativo; o bloqueio público é o global acima.
-enable_signup = true
-```
-
-Se alterar esse arquivo, confira a ajuda de `npx supabase config push` antes de aplicar configuração a um projeto remoto. Também valide a chave no Dashboard: a configuração local, sozinha, não altera automaticamente um projeto hospedado.
-
-## 3. Linkar o Supabase e aplicar as migrações
-
-Autentique a CLI, associe esta pasta ao projeto correto e visualize as mudanças antes de aplicá-las:
-
-```bash
-npx supabase login
-npx supabase link --project-ref SEU_PROJECT_REF
-npx supabase db push --dry-run
-npx supabase db push
-npx supabase migration list --linked
-```
-
-Revise atentamente o projeto exibido pela CLI antes do `db push`. Não use `db reset --linked` em produção: esse comando apaga os dados do banco remoto.
-
-A migração inicial fica em `supabase/migrations/20260826000000_initial_course_platform.sql`. Ela cria:
-
-- as tabelas da plataforma e seus relacionamentos;
-- RLS e policies por papel/propriedade/publicação;
-- o curso único inicial com o título editável `Meu curso`;
-- os buckets privados `covers`, `avatars`, `materials` e `submissions` e suas policies.
-
-As migrações seguintes criam os buckets privados de comunidade, feedback e materiais de atividade. Depois do push, confirme em **Storage** que todos os buckets continuam privados. Ao substituir uma entrega, o app envia um novo arquivo e troca a referência somente após validar o objeto no banco.
-
-Se o projeto estiver configurado para não expor automaticamente novas tabelas à Data API, confirme em **Settings → API → Data API** que o schema `public` está exposto e que os papéis `authenticated` têm os grants esperados. Isso é separado de RLS; mantenha ambos.
-
-## 4. Criar o primeiro administrador
-
-O bootstrap usa `auth.admin.createUser` em um script Node local. Ele confirma o e-mail sem enviar mensagem e grava `app_metadata.role = "admin"`. A senha não é salva no Postgres da aplicação e não é exibida.
-
-Com as variáveis de `.env.local` preenchidas, execute em um terminal interativo:
+**3. Crie a primeira conta e abra o app**
 
 ```bash
 node --env-file=.env.local scripts/create-first-admin.mjs
-```
-
-O script solicita e-mail e senha; a senha fica oculta. Em CI ou terminal não interativo, forneça também `FIRST_ADMIN_EMAIL` e `FIRST_ADMIN_PASSWORD` como secrets temporários do ambiente. Não os adicione ao `.env.example`, ao Git ou à linha de comando.
-
-Ao concluir, ele mostra somente ID, e-mail e papel. Se o e-mail já existir, o script falha sem elevar silenciosamente essa conta. Entre em `/login` com a senha definida e use `/admin/users` para criar professor e aluno. As contas criadas pelo admin também devem receber papel em `app_metadata`, nunca em `user_metadata`.
-
-## 5. Executar localmente
-
-```bash
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000). Sem sessão, `/` e qualquer rota autenticada devem redirecionar para `/login`.
+Entre em [localhost:3000/login](http://localhost:3000/login) com a conta criada pelo script. Em **Contas**, cadastre um professor e um aluno para experimentar os dois fluxos. O cadastro é administrado pela escola.
 
-Antes de entregar uma mudança:
+## Vídeo privado
 
-```bash
-npm run check
+O professor salva a aula como rascunho e envia o arquivo ao Cloudflare Stream pela edição. O envio pode ser retomado após uma interrupção. A publicação de uma nova gravação fica disponível quando o processamento termina.
+
+```mermaid
+sequenceDiagram
+    actor Aluno
+    participant App as Sala do Curso
+    participant Banco as Supabase
+    participant Video as Cloudflare Stream
+    Aluno->>App: Abre a gravação da aula
+    App->>Banco: Confere a sessão e a visibilidade da aula
+    Banco-->>App: Confirma o acesso
+    App-->>Aluno: Emite autorização de 30 minutos
+    Aluno->>Video: Reproduz com token assinado
+    Aluno->>App: Salva o ponto de reprodução
+    App->>Banco: Registra o progresso do aluno
 ```
 
-`npm run check` encadeia lint, verificação de tipos, testes e build. Para diagnosticar uma etapa isoladamente, use `npm run lint`, `npm run typecheck`, `npm test` ou `npm run build`.
+A gravação exige token assinado e reprodução em um domínio autorizado. A sessão é revalidada a cada renovação. No banco, as políticas de acesso por linha (RLS) protegem as entregas e o progresso. O gabarito fica no schema privado e segue a configuração de revisão do professor. [Segurança do projeto](docs/SECURITY.md) · [Reprodução assinada no Stream](https://developers.cloudflare.com/stream/viewing-videos/securing-your-stream/)
 
-## 6. Configurar vídeo privado
+## Projeto
 
-1. Ative o Stream na conta Cloudflare e crie um token de API com permissão de edição do Stream nessa conta. Cadastre `CLOUDFLARE_ACCOUNT_ID` e `CLOUDFLARE_STREAM_API_TOKEN` no servidor.
-2. Copie o código do cliente do domínio do player para `CLOUDFLARE_STREAM_CUSTOMER_CODE`. Use somente a parte entre `customer-` e `.cloudflarestream.com`.
-3. Gere uma chave de assinatura no Stream. Configure os campos `id` e `jwk` devolvidos pela API em `CLOUDFLARE_STREAM_SIGNING_KEY_ID` e `CLOUDFLARE_STREAM_SIGNING_JWK`. O campo `jwk` já vem codificado em base64. [Chaves e reprodução assinada](https://developers.cloudflare.com/stream/viewing-videos/securing-your-stream/)
-4. Em `CLOUDFLARE_STREAM_ALLOWED_ORIGINS`, liste os domínios autorizados para aquele ambiente, sem protocolo e separados por vírgula. Exemplo `aulas.cursinho.com.br`. O limite padrão de duração por gravação é de quatro horas e pode ser ajustado com `CLOUDFLARE_STREAM_MAX_DURATION_SECONDS`.
-5. Crie uma aula em rascunho e envie um vídeo pela edição. Aguarde o estado **Gravação pronta**, publique e valide a reprodução com uma conta de aluno no domínio configurado.
+| Camada | Tecnologia |
+| --- | --- |
+| Aplicação | Next.js 16 com App Router, React 19 e TypeScript |
+| Contas, dados e arquivos | Supabase Auth, Postgres com RLS e Storage privado |
+| Vídeo | Cloudflare Stream com upload TUS e URLs assinadas |
+| Verificação | ESLint, TypeScript e Vitest |
 
-### Atualizar uma instalação existente
+```text
+src/app/              Páginas, ações de servidor e rotas de API
+src/components/       Navegação, formulários, player e atividades
+src/lib/              Autenticação, validação e integração com os serviços
+supabase/migrations/  Esquema, permissões, buckets e migrações de dados
+```
 
-1. Ensaie as migrações em homologação com uma cópia do esquema e amostras de aulas, arquivos, progresso e feedback. Separe as gravações originais ou exporte-as da conta proprietária no YouTube. [Exportação pelo YouTube](https://support.google.com/youtube/answer/56100?hl=pt-BR)
-2. Faça backup do banco e dos arquivos. Coordene a aplicação das novas migrações com a publicação do novo app na Vercel. A versão anterior usa colunas que mudaram.
-3. Na edição de cada aula existente, reenvie o arquivo original. Durante a transição, materiais e atividades continuam acessíveis e a aula informa que a gravação aguarda migração. O professor pode consultar a referência original na edição da aula.
-4. Após confirmar a reprodução privada com um aluno, altere o vídeo original para **Privado** no YouTube para desativar links antigos. [Visibilidade no YouTube](https://support.google.com/youtube/answer/157177?hl=pt-BR)
+Execute `npm run check` para rodar lint, checagem de tipos, testes e build. Para alterar a interface, consulte a [identidade visual](DESIGN.md). Para preparar uma instalação, migrar gravações ou verificar as permissões, use o [guia de publicação](docs/DEPLOY.md).
 
-Na Vercel, configure as variáveis de `.env.example` para cada ambiente. Use um projeto Supabase de homologação no preview e os valores de produção somente no deploy de produção.
-
-## Validação
-
-Use três navegadores/perfis separados para evitar confundir sessões. Registre o resultado e teste novamente depois de alterar Auth, RLS, Storage ou middleware.
-
-### Acesso e papéis
-
-- Sem sessão, abrir `/`, `/perfil`, `/comunidade` e uma aula redireciona para `/login`.
-- Uma tentativa direta de signup pela API do Supabase é recusada.
-- O primeiro admin entra e cria um professor e um aluno com e-mail, senha inicial e papel.
-- O aluno recebe as próprias notificações de feedback. As páginas de edição, o cadastro de usuários e as mutações de equipe recusam o papel aluno.
-- O professor abre `/notificacoes`, mas não `/admin/users`; o admin acessa ambos e herda as ações do professor.
-
-### Curso, player e progresso
-
-- O professor troca capa e dados do curso, cria dois módulos e três aulas e reordena os dois níveis; o aluno recebe a mesma ordem após recarregar.
-- O professor interrompe o upload e seleciona o mesmo arquivo para retomá-lo. A publicação de uma aula nova com gravação aguarda o processamento.
-- O aluno pausa no meio, sai e volta. O player busca o ponto salvo e a home oferece **Retomar aula**.
-- O botão marca e desmarca visto; ao chegar a 90%, a aula fica vista automaticamente e não desmarca sozinha.
-- Uma aula com `publishedAt` futuro aparece como agendada para professor/admin e fica invisível para aluno, inclusive por acesso direto.
-- Consulte a Data API com a conta de aluno e verifique que `lesson_media` é inacessível. A emissão de autorização deve recusar sessões ausentes e aulas invisíveis. No Stream, valide que o UID avulso e um token expirado não reproduzem o vídeo.
-
-### Comentários, materiais e entregas
-
-- O aluno comenta com o player em `01:15`; `01:15` aparece antes do texto e o link busca esse ponto do vídeo.
-- Uma aula sem vídeo aceita comentário sem timestamp.
-- O professor anexa PDF e o aluno consegue baixá-lo.
-- O professor publica uma entrega avulsa e vincula um questionário a uma aula. O aluno encontra ambos em Atividades e abre o questionário também pela aula.
-- O aluno envia e substitui PDF, JPG, PNG ou WebP. O professor responde em privado e a notificação abre a conversa certa. Outro aluno não consegue listar, baixar ou sobrescrever o arquivo.
-- O questionário corrige no servidor e registra cada tentativa. Reenviar a mesma requisição devolve o resultado anterior. O gabarito só chega ao aluno após o envio e quando a configuração permite.
-
-### Comunidade, cronograma, perfil e notificações
-
-- O aluno abre uma dúvida e o professor responde; a resposta do professor aparece destacada e antes das demais.
-- As aulas com `scheduledFor` aparecem agrupadas por semana; aluno não recebe conteúdo futuro indevido e professor vê todos os itens.
-- Aluno e professor alteram somente o próprio nome, avatar e bio; o upsert de avatar realmente substitui o arquivo.
-- Comentário, dúvida e entrega criam notificação para professor/admin, em ordem da mais recente; abrir o alvo marca a notificação como lida.
-
-### Estados, acessibilidade e falhas
-
-- Confira os estados vazios: curso sem módulos, módulo sem aulas, aula sem comentários, comunidade, cronograma, notificações e entrega sem arquivos.
-- Simule falha de rede em login, publicação, upload, reordenação, entrega e comentário; a UI deve sair de loading e explicar o erro em português.
-- Navegue por teclado: labels ficam visíveis, foco é perceptível, iframe tem `title` e timestamp usa `aria-label="Ir para mm:ss"`.
-- Teste uma viewport mobile: navegação, formulários, listas e player 16:9 continuam utilizáveis.
-
-Referências oficiais do Supabase. [Configuração do Auth](https://supabase.com/docs/guides/auth/general-configuration) · [Criação administrativa de usuários](https://supabase.com/docs/reference/javascript/auth-admin-createuser) · [Chaves](https://supabase.com/docs/guides/getting-started/api-keys) · [Migrações](https://supabase.com/docs/guides/local-development/cli-workflows)
+Sala do Curso é um projeto independente do HubON.

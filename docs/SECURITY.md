@@ -32,6 +32,6 @@ Este projeto usa o Supabase Auth, Postgres com RLS e Storage privado. A seguran�
 
 1. Confirme no bundle e no painel da Vercel que nenhuma variável `NEXT_PUBLIC_*` contém service role.
 2. Confirme que o signup público global e o signup anônimo estão desligados, mas que o provedor Email continua ativo para login com senha.
-3. Execute os testes de acesso com aluno, professor, admin e sem sessão descritos no README.
+3. Execute os testes de acesso com aluno, professor, administrador e visitante do [guia de publicação](DEPLOY.md#verificar-a-instalação).
 4. Rode o Security Advisor do Supabase e trate os achados de RLS e funções antes da produção.
 5. Revise os tipos MIME e limites dos buckets e teste arquivos recusados.
