@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Check, Clock3, FilePlus2, Pencil, Settings2 } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, FilePlus2, Play, Settings2 } from "lucide-react";
 import { createModuleAction, updateModuleAction } from "@/app/actions/course";
 import { ActionForm } from "@/components/action-form";
 import { EmptyState } from "@/components/empty-state";
@@ -13,8 +13,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Course, Lesson, Module, Progress } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Curso" };
-
-type LessonWithModule = Lesson & { module?: Module };
 
 export default async function CourseHome({ searchParams }: { searchParams: Promise<{ editar?: string }> }) {
   const auth = await requireUser();
@@ -36,12 +34,14 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   const progress = (progressData ?? []) as Progress[];
   const progressByLesson = new Map(progress.map((item) => [item.lesson_id, item]));
   const modulesById = new Map(modules.map((module) => [module.id, module]));
-  const continueItem = progress
-    .filter((item) => !item.watched && item.last_seconds > 0 && lessons.some((lesson) => lesson.id === item.lesson_id))
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
-  const continueLesson = continueItem
-    ? ({ ...lessons.find((lesson) => lesson.id === continueItem.lesson_id), module: modulesById.get(lessons.find((lesson) => lesson.id === continueItem.lesson_id)?.module_id ?? "") } as LessonWithModule)
-    : null;
+  const orderedLessons = modules.flatMap((module) => lessons.filter((lesson) => lesson.module_id === module.id));
+  const lessonsById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
+  const resume = progress
+    .filter((item) => !item.watched && item.last_seconds > 0 && lessonsById.has(item.lesson_id))
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
+  const nextLesson = (resume ? lessonsById.get(resume.lesson_id) : undefined)
+    ?? orderedLessons.find((lesson) => !progressByLesson.get(lesson.id)?.watched);
+  const finished = lessons.filter((lesson) => progressByLesson.get(lesson.id)?.watched).length;
 
   if (!course) {
     return <main className="container page"><EmptyState title="Curso não configurado"><p>Aplique a migração inicial do Supabase para criar o curso.</p></EmptyState></main>;
@@ -50,40 +50,44 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   const coverUrl = storageFileUrl("covers", course.cover_path);
 
   return (
-    <main className="container page">
-      <section className="course-hero">
-        <div className="course-cover">
-          {coverUrl ? (
-            <Image src={coverUrl} alt={`Capa de ${course.title}`} fill sizes="(max-width: 720px) 100vw, 360px" unoptimized priority />
-          ) : (
-            <div className="course-cover-placeholder"><BookOpen aria-hidden="true" size={34} /><span>Adicione uma capa ao curso</span></div>
-          )}
+    <main className="container page study-home">
+      <header className="study-heading">
+        <div>
+          <h1>{course.title}</h1>
+          {course.description ? <p className="page-description">{course.description}</p> : null}
         </div>
-        <div className="course-intro">
-          <div>
-            <h1>{course.title}</h1>
-            {course.description ? <p className="page-description">{course.description}</p> : <p className="page-description">Acesse os módulos abaixo e continue seus estudos.</p>}
-          </div>
+        {auth.isStaff ? <Link className="button secondary" href="/course/edit"><Settings2 size={17} aria-hidden="true" /> Dados do curso</Link> : null}
+      </header>
+
+      <section className={`study-feature${coverUrl ? " has-cover" : ""}`} aria-labelledby="study-feature-title">
+        <div className="study-feature-copy">
+          <p className="feature-label">
+            {auth.isStaff ? <BookOpen size={17} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
+            {auth.isStaff ? "Área do professor" : resume ? "Continue estudando" : nextLesson ? "Próxima aula" : "Seu curso"}
+          </p>
+          <h2 id="study-feature-title">{auth.isStaff ? "Organize o conteúdo" : nextLesson?.title ?? (lessons.length ? "Aulas em dia" : "Aulas em preparação")}</h2>
+          {nextLesson && !auth.isStaff ? <p>{modulesById.get(nextLesson.module_id)?.title}{resume ? ` · Parou em ${formatVideoTime(resume.last_seconds)}` : ""}</p> : null}
           {auth.isStaff ? (
-            <div className="cluster">
-              <Link className="button secondary" href="/course/edit"><Pencil aria-hidden="true" size={17} /> Editar capa e dados</Link>
-              <Link className="button secondary" href={editMode ? "/" : "/?editar=1"}><Settings2 aria-hidden="true" size={17} /> {editMode ? "Sair da organização" : "Organizar"}</Link>
-              <Link className="button" href="/lessons/new"><FilePlus2 aria-hidden="true" size={17} /> Nova aula</Link>
+            <div className="cluster feature-actions">
+              <Link className="button feature-button" href="/lessons/new"><FilePlus2 aria-hidden="true" size={17} /> Nova aula</Link>
+              <Link className="button feature-secondary" href={editMode ? "/" : "/?editar=1"}>{editMode ? "Concluir organização" : "Organizar módulos"}</Link>
             </div>
+          ) : nextLesson ? (
+            <Link className="button feature-button" href={`/lessons/${nextLesson.id}`}>{resume ? "Retomar aula" : "Começar aula"}<ArrowRight aria-hidden="true" size={18} /></Link>
           ) : null}
         </div>
-      </section>
-
-      {continueItem && continueLesson?.id ? (
-        <section className="continue-strip" aria-label="Continuar aula">
-          <div>
-            <span className="badge primary"><Clock3 aria-hidden="true" size={13} /> Em andamento</span>
-            <h2>Continue de onde parou</h2>
-            <p>{continueLesson.module?.title ? `${continueLesson.module.title} · ` : ""}{continueLesson.title} — {formatVideoTime(continueItem.last_seconds)}</p>
+        {coverUrl ? (
+          <div className="study-cover"><Image src={coverUrl} alt={`Capa de ${course.title}`} fill sizes="(max-width: 600px) 85vw, 380px" unoptimized priority /></div>
+        ) : (
+          <div className="study-stat">
+            <span>{auth.isStaff ? "Conteúdo do curso" : "Aulas concluídas"}</span>
+            <strong>{auth.isStaff ? lessons.length : finished}<small>{auth.isStaff ? (lessons.length === 1 ? " aula" : " aulas") : ` / ${lessons.length}`}</small></strong>
+            {auth.isStaff ? <span>{modules.length} {modules.length === 1 ? "módulo" : "módulos"}</span> : (
+              <progress aria-label="Progresso no curso" value={finished} max={Math.max(1, lessons.length)} />
+            )}
           </div>
-          <Link className="button" href={`/lessons/${continueLesson.id}`}>Continuar de {formatVideoTime(continueItem.last_seconds)}</Link>
-        </section>
-      ) : null}
+        )}
+      </section>
 
       {editMode ? (
         <section className="panel module-create">
@@ -98,8 +102,9 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
         </section>
       ) : null}
 
+      <div className="study-grid">
       <section aria-labelledby="modules-title" className="modules-section">
-        <div className="section-heading"><div><h2 id="modules-title">Módulos e aulas</h2><p className="muted">Siga a ordem preparada pelo professor.</p></div></div>
+        <div className="section-heading"><h2 id="modules-title">Módulos e aulas</h2></div>
         {modules.length === 0 ? (
           <EmptyState title="O curso ainda não tem módulos" action={auth.isStaff ? <Link className="button" href="/?editar=1">Criar primeiro módulo</Link> : undefined}>
             <p>{auth.isStaff ? "Crie o primeiro módulo para começar a organizar as aulas." : "A organização ainda está preparando o conteúdo. Volte em breve."}</p>
@@ -108,6 +113,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
           <div className="module-list">
             {modules.map((module, moduleIndex) => {
               const moduleLessons = lessons.filter((lesson) => lesson.module_id === module.id).sort((a, b) => a.position - b.position);
+              const moduleFinished = moduleLessons.filter((lesson) => progressByLesson.get(lesson.id)?.watched).length;
               return (
                 <article className="module-block" key={module.id}>
                   <header className="module-header">
@@ -116,6 +122,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
                       <h3>{module.title}</h3>
                       {module.scheduled_for ? <p className="meta">No cronograma em {formatDateInSaoPaulo(module.scheduled_for)}</p> : null}
                     </div>
+                    {!auth.isStaff && moduleLessons.length ? <span className="module-progress">{moduleFinished}/{moduleLessons.length} concluídas</span> : null}
                     {editMode ? (
                       <div className="reorder-pair" aria-label={`Reordenar módulo ${module.title}`}>
                         <ReorderButton kind="module" id={module.id} direction="up" disabled={moduleIndex === 0} />
@@ -168,6 +175,17 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
           </div>
         )}
       </section>
+      {!editMode ? (
+        <aside className="study-side" aria-label="Links do curso">
+          <section className="panel study-side-panel">
+            <span className="study-side-icon"><CalendarDays size={21} aria-hidden="true" /></span>
+            <h2>Cronograma</h2>
+            <p className="muted">{auth.isStaff ? "Organize a semana recomendada para a turma." : "Consulte a semana recomendada e organize seus horários."}</p>
+            <Link className="inline-link" href="/cronograma">Ver cronograma <ArrowRight size={17} aria-hidden="true" /></Link>
+          </section>
+        </aside>
+      ) : null}
+      </div>
     </main>
   );
 }

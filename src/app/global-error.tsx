@@ -1,11 +1,11 @@
 "use client";
 
-import { inter, manrope } from "@/lib/fonts";
+import { bricolage, inter } from "@/lib/fonts";
 import "./globals.css";
 
 export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <html lang="pt-BR" className={`${manrope.variable} ${inter.variable}`}>
+    <html lang="pt-BR" className={`${bricolage.variable} ${inter.variable}`}>
       <body>
         <main className="container page">
           <div className="empty-state">

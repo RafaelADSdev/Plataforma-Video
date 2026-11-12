@@ -9,9 +9,10 @@ export default async function AuthenticatedLayout({ children }: { children: Reac
   const { data } = await supabase.from("profiles").select("display_name").eq("id", auth.id).maybeSingle();
 
   return (
-    <>
+    <div className="app-shell">
+      <a className="skip-link" href="#conteudo">Pular para o conteúdo</a>
       <AppHeader auth={auth} displayName={formDisplayName(data?.display_name, auth.email) || auth.email} />
-      {children}
-    </>
+      <div className="app-content" id="conteudo" tabIndex={-1}>{children}</div>
+    </div>
   );
 }

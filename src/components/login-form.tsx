@@ -14,12 +14,6 @@ export function LoginForm() {
   const passwordInvalid = Boolean(state.fieldErrors?.password);
 
   useEffect(() => {
-    if (state.values?.email !== undefined) {
-      setEmail(state.values.email);
-    }
-  }, [state.values?.email]);
-
-  useEffect(() => {
     if (emailInvalid) {
       emailRef.current?.focus();
       return;
