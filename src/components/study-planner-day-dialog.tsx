@@ -3,19 +3,19 @@
 import { X } from "lucide-react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { saveStudyPlanDay } from "@/app/actions/study-planner";
-import { formatPlannerDate, MAX_STUDY_PLAN_LENGTH } from "@/lib/study-planner";
+import { formatRoutineDay, MAX_STUDY_PLAN_LENGTH, type RoutineDay } from "@/lib/study-planner";
 import styles from "./study-planner.module.css";
 
 export function StudyPlannerDayDialog({
   courseId,
-  date,
+  day,
   initialNote,
   onClose,
   onSaving,
   onSaved,
 }: {
   courseId: string;
-  date: string;
+  day: RoutineDay;
   initialNote: string;
   onClose: () => void;
   onSaving: (note: string) => void;
@@ -41,7 +41,7 @@ export function StudyPlannerDayDialog({
     startTransition(async () => {
       onSaving(nextNote);
       try {
-        const result = await saveStudyPlanDay(courseId, date, nextNote);
+        const result = await saveStudyPlanDay(courseId, day, nextNote);
         if (!result.ok) {
           setError(result.message ?? "Não foi possível salvar este dia. Tente novamente.");
           return;
@@ -63,14 +63,14 @@ export function StudyPlannerDayDialog({
       onCancel={(event) => { if (pending) event.preventDefault(); }}
     >
       <div className={styles.dialogHeader}>
-        <h2 id="planner-day-title">{formatPlannerDate(date)}</h2>
+        <h2 id="planner-day-title">{formatRoutineDay(day)}</h2>
         <button className={`button ghost ${styles.iconButton}`} type="button" aria-label="Fechar" disabled={pending} onClick={() => dialog.current?.close()}>
           <X size={20} aria-hidden="true" />
         </button>
       </div>
       <form onSubmit={(event) => { event.preventDefault(); save(); }} className={styles.dialogForm}>
         <div className="field">
-          <label htmlFor="planner-note">O que você vai estudar?</label>
+          <label htmlFor="planner-note">O que você vai fazer neste dia?</label>
           <textarea
             ref={textarea}
             className="textarea"
@@ -79,7 +79,7 @@ export function StudyPlannerDayDialog({
             value={note}
             onChange={(event) => setNote(event.target.value)}
             maxLength={MAX_STUDY_PLAN_LENGTH}
-            placeholder="Ex.: Matemática — funções e 20 exercícios"
+            placeholder={"18h — Matemática: funções\n19h — Revisão e exercícios"}
             rows={4}
             readOnly={pending}
           />

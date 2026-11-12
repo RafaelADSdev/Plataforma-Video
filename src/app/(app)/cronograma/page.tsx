@@ -8,9 +8,9 @@ import { ScheduleWeekBoard } from "@/components/schedule-week-board";
 import { StudyPlanner } from "@/components/study-planner";
 import { requireUser, type AuthContext } from "@/lib/auth";
 import { canCopyRecommendedSchedule, canEditPersonalSchedule, canEditRecommendedSchedule } from "@/lib/schedule-permissions";
-import { getPlannerWeeks, isPlannerMonth } from "@/lib/study-planner";
+import { routineDayKey, type RoutineDay } from "@/lib/study-planner";
 import { createClient } from "@/lib/supabase/server";
-import { getIsoWeekdayInSaoPaulo, toSaoPauloDateTimeInput } from "@/lib/time";
+import { getIsoWeekdayInSaoPaulo } from "@/lib/time";
 import type { WeeklyScheduleSlot } from "@/types/domain";
 import plannerStyles from "@/components/study-planner.module.css";
 
@@ -27,10 +27,10 @@ const plannerFont = Barlow_Condensed({
 export default async function SchedulePage({
   searchParams,
 }: {
-  searchParams: Promise<{ vista?: string; mes?: string }>;
+  searchParams: Promise<{ vista?: string }>;
 }) {
   const auth = await requireUser();
-  const { vista, mes } = await searchParams;
+  const { vista } = await searchParams;
   const isStudent = auth.role === "aluno";
   const viewingPersonal = isStudent && vista === "meu";
   const viewingPlanner = !viewingPersonal && vista !== "recomendado";
@@ -38,13 +38,13 @@ export default async function SchedulePage({
   const { data: course, error } = await supabase.from("courses").select("id").limit(1).maybeSingle();
 
   return (
-    <main className={`container page schedule-page${viewingPlanner ? ` ${plannerStyles.monthPage} ${plannerFont.variable}` : ""}`}>
+    <main className={`container page schedule-page${viewingPlanner ? ` ${plannerStyles.routinePage} ${plannerFont.variable}` : ""}`}>
       <div className="page-header">
         <div>
           <h1>Cronograma</h1>
           <p className="page-description">
             {viewingPlanner
-              ? "Organize seus estudos por dia e baixe seu plano do mês."
+              ? "Monte sua rotina de estudos para quatro semanas."
               : auth.isStaff
                 ? "Monte a semana de estudo que os alunos podem consultar e copiar."
                 : "Consulte os horários da semana ou organize sua própria rotina."}
@@ -53,7 +53,7 @@ export default async function SchedulePage({
       </div>
 
       <nav className="schedule-tabs" aria-label="Tipo de cronograma">
-        <Link href="/cronograma" aria-current={viewingPlanner ? "page" : undefined}>Planner mensal</Link>
+        <Link href="/cronograma" aria-current={viewingPlanner ? "page" : undefined}>Rotina de estudos</Link>
         <Link href="/cronograma?vista=recomendado" aria-current={!viewingPlanner && !viewingPersonal ? "page" : undefined}>Semana recomendada</Link>
         {isStudent ? <Link href="/cronograma?vista=meu" aria-current={viewingPersonal ? "page" : undefined}>Minha semana</Link> : null}
       </nav>
@@ -67,7 +67,7 @@ export default async function SchedulePage({
           <p>Quando o curso existir, o cronograma aparece aqui.</p>
         </EmptyState>
       ) : viewingPlanner ? (
-        <MonthlySchedule courseId={course.id} ownerId={auth.id} requestedMonth={mes} />
+        <StudyRoutine courseId={course.id} ownerId={auth.id} />
       ) : (
         <WeeklySchedule courseId={course.id} auth={auth} viewingPersonal={viewingPersonal} />
       )}
@@ -75,30 +75,25 @@ export default async function SchedulePage({
   );
 }
 
-async function MonthlySchedule({ courseId, ownerId, requestedMonth }: { courseId: string; ownerId: string; requestedMonth?: string }) {
-  const today = toSaoPauloDateTimeInput(new Date()).slice(0, 10);
-  const month = typeof requestedMonth === "string" && isPlannerMonth(requestedMonth) ? requestedMonth : today.slice(0, 7);
-  const weeks = getPlannerWeeks(month);
-  const lastDate = weeks.at(-1)?.dates.findLast((date) => date !== null);
+async function StudyRoutine({ courseId, ownerId }: { courseId: string; ownerId: string }) {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("study_planner_days")
-    .select("study_date,note")
+    .from("study_routine_days")
+    .select("week_number,weekday,note")
     .eq("course_id", courseId)
     .eq("owner_id", ownerId)
-    .gte("study_date", `${month}-01`)
-    .lte("study_date", lastDate ?? `${month}-01`);
+    .returns<{ week_number: RoutineDay["week"]; weekday: RoutineDay["weekday"]; note: string }[]>();
 
   if (error) {
     return (
-      <EmptyState title="Não foi possível carregar o planner">
+      <EmptyState title="Não foi possível carregar a rotina de estudos">
         <p>Tente novamente em instantes.</p>
       </EmptyState>
     );
   }
 
-  const notes = Object.fromEntries(data.map(({ study_date, note }) => [study_date, note]));
-  return <StudyPlanner key={month} courseId={courseId} month={month} today={today} weeks={weeks} notes={notes} />;
+  const notes = Object.fromEntries(data.map(({ week_number, weekday, note }) => [routineDayKey({ week: week_number, weekday }), note]));
+  return <StudyPlanner courseId={courseId} notes={notes} />;
 }
 
 async function WeeklySchedule({ courseId, auth, viewingPersonal }: { courseId: string; auth: AuthContext; viewingPersonal: boolean }) {

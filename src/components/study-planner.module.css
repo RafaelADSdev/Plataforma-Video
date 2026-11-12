@@ -4,7 +4,6 @@
   --planner-rule: #20ae7e;
   --planner-paper: #fffefa;
   --planner-label: #edfdf4;
-  --planner-inactive: #def7e9;
   --planner-week: #8a4d00;
 
   min-width: 0;
@@ -15,7 +14,6 @@
   --planner-rule: #519c80;
   --planner-paper: var(--surface);
   --planner-label: var(--surface-muted);
-  --planner-inactive: var(--canvas);
   --planner-week: #f5ce90;
 }
 
@@ -25,7 +23,6 @@
   border-radius: var(--radius-md);
 }
 
-.heading,
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -57,7 +54,6 @@
   text-underline-offset: 0.09em;
 }
 
-.monthNav,
 .exportActions {
   display: flex;
   flex-wrap: wrap;
@@ -67,34 +63,6 @@
 .iconButton:global(.button) {
   width: 2.75rem;
   padding: 0;
-}
-
-.monthNav {
-  flex-wrap: nowrap;
-  align-items: center;
-}
-
-.monthLabel {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 750;
-  text-align: center;
-}
-
-.monthNav .iconButton {
-  flex-shrink: 0;
-  color: var(--planner-ink);
-  background: transparent;
-  border-color: rgb(9 39 27 / 0.55);
-}
-
-.monthNav .iconButton:hover {
-  color: #fffefa;
-  background: var(--planner-ink);
-}
-
-.monthNav .iconButton:focus-visible {
-  outline-color: var(--planner-ink);
 }
 
 .toolbar {
@@ -107,14 +75,14 @@
   font-size: 0.88rem;
 }
 
-.calendar {
+.routineGrid {
   width: 100%;
   border: 2px solid var(--planner-ink);
   border-collapse: collapse;
   table-layout: fixed;
 }
 
-.calendar th {
+.routineGrid th {
   padding: 0.65rem 0.25rem;
   color: var(--ink);
   background: var(--planner-label);
@@ -122,57 +90,52 @@
   text-align: center;
 }
 
-.calendar thead th {
+.routineGrid thead th {
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.calendar .weekColumn {
+.routineGrid .weekColumn {
   width: 4.6rem;
   color: var(--planner-week);
 }
 
-.calendar tbody th {
+.routineGrid tbody th {
   font-family: var(--font-planner), Impact, sans-serif;
   font-size: 1.6rem;
   font-weight: 800;
 }
 
-.calendar :is(th, td) + :is(th, td) {
+.routineGrid :is(th, td) + :is(th, td) {
   border-left: 1px solid var(--planner-rule);
 }
 
-.calendar :is(th, td) {
+.routineGrid :is(th, td) {
   border-bottom-color: var(--planner-rule);
 }
 
-.calendar tbody :is(th, td) {
+.routineGrid tbody :is(th, td) {
   border-top: 1px solid var(--planner-rule);
 }
 
-.calendar td {
+.routineGrid td {
   height: 6rem;
   padding: 0;
   vertical-align: top;
   background: var(--planner-paper);
 }
 
-.calendar .day {
+.routineGrid .day {
   min-height: 6rem;
-}
-
-.calendar .outside {
-  background: var(--planner-inactive);
 }
 
 .day {
   display: grid;
   width: 100%;
   min-height: 100%;
-  align-content: start;
-  gap: 0.25rem;
-  padding: 0.45rem 0.5rem;
+  align-content: center;
+  padding: 0.65rem 0.5rem;
   color: var(--ink);
   text-align: start;
   background: transparent;
@@ -188,31 +151,14 @@
   outline-offset: -2px;
 }
 
-.dayTop {
+.addDay {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 0.25rem;
   color: var(--muted);
-}
-
-.dayNumber {
-  display: grid;
-  min-width: 1.65rem;
-  min-height: 1.65rem;
-  place-items: center;
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.day[aria-current="date"] .dayNumber {
-  color: var(--on-primary);
-  background: var(--primary-button);
-  border-radius: 50%;
-}
-
-.dayPlus {
-  margin-right: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 650;
 }
 
 .dayNote {
@@ -229,7 +175,7 @@
   -webkit-line-clamp: 5;
 }
 
-.mobileCalendar {
+.mobileRoutine {
   display: none;
 }
 
@@ -296,18 +242,18 @@
 }
 
 @media (max-width: 780px) {
-  .monthPage > :global(.page-header) {
+  .routinePage > :global(.page-header) {
     margin-bottom: 0.85rem;
     padding-bottom: 0.85rem;
   }
 
-  .monthPage > :global(.schedule-tabs) {
+  .routinePage > :global(.schedule-tabs) {
     flex-wrap: nowrap;
     gap: 0.2rem;
     margin: 0 0 1rem;
   }
 
-  .monthPage > :global(.schedule-tabs) a {
+  .routinePage > :global(.schedule-tabs) a {
     justify-content: center;
     padding-inline: 0.55rem;
     font-size: 0.83rem;
@@ -321,11 +267,11 @@
     font-size: clamp(1.65rem, 9.4cqi, 3rem);
   }
 
-  .calendar {
+  .routineGrid {
     display: none;
   }
 
-  .mobileCalendar {
+  .mobileRoutine {
     display: block;
     background: var(--planner-paper);
     border: 2px solid var(--planner-ink);
@@ -390,5 +336,9 @@
   .dayNote {
     display: block;
     font-size: 0.85rem;
+  }
+
+  .addDay {
+    justify-content: flex-start;
   }
 }
