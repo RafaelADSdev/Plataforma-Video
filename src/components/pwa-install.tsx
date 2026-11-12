@@ -49,7 +49,7 @@ export function PwaInstall() {
   if (installed) return null;
 
   return (
-    <footer className="login-install">
+    <div className="login-install">
       <button
         type="button"
         onClick={install}
@@ -63,6 +63,6 @@ export function PwaInstall() {
         <p>No iPhone, no Safari, vá de <strong>Compartilhar</strong> para <strong>Adicionar à Tela de Início</strong>. Ative <strong>Abrir como App da Web</strong> se a opção aparecer.</p>
         <p>No Android ou computador, procure <strong>Instalar</strong>, <strong>Adicionar à tela inicial</strong> ou <strong>Adicionar ao Dock</strong> no menu do navegador.</p>
       </div>
-    </footer>
+    </div>
   );
 }

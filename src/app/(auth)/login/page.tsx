@@ -28,7 +28,6 @@ export default function LoginPage() {
             <BrandMark />
             Sala do Curso
           </p>
-          <ThemeToggle />
         </header>
 
         <main className="login-card" aria-labelledby="login-title">
@@ -46,7 +45,10 @@ export default function LoginPage() {
           </details>
         </main>
 
-        <PwaInstall />
+        <footer className="login-footer">
+          <PwaInstall />
+          <ThemeToggle />
+        </footer>
       </div>
 
       <aside className={`login-feature ${instrumentSerif.variable}`} aria-label="Sobre a Sala do Curso">

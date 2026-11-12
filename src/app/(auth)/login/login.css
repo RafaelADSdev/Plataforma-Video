@@ -33,8 +33,6 @@ html[data-theme="dark"] .login-shell {
 .login-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
 }
 
 .login-brand {
@@ -52,19 +50,20 @@ html[data-theme="dark"] .login-shell {
   width: 2.625rem;
 }
 
-.login-header .theme-toggle {
+.login-footer .theme-toggle {
+  grid-column: 2;
   background: var(--login-input);
   border-color: var(--border);
   border-radius: 50%;
 }
 
-.login-header .theme-toggle:hover {
+.login-footer .theme-toggle:hover {
   background: var(--surface-muted);
   border-color: var(--border-strong);
 }
 
 .login-card,
-.login-install {
+.login-footer {
   width: min(100%, var(--login-content-width));
   justify-self: center;
 }
@@ -215,7 +214,11 @@ html[data-theme="dark"] .login-shell {
   font-size: 0.875rem;
 }
 
-.login-install {
+.login-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
