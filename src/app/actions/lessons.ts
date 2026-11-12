@@ -8,23 +8,22 @@ import { requireProfessor, requireUser } from "@/lib/auth";
 import { postgresUuidSchema } from "@/lib/schemas";
 import { createClient } from "@/lib/supabase/server";
 import { saoPauloDateTimeInputToIso } from "@/lib/time";
-import { isValidYouTubeUrl } from "@/lib/youtube";
 
 export type LessonActionState = ActionState & { lessonId?: string };
 
 const uuid = postgresUuidSchema();
 
 function parseLessonForm(formData: FormData) {
-  const youtubeUrl = String(formData.get("youtube_url") ?? "").trim();
-  const publishMode = formData.get("publish_mode") === "scheduled" ? "scheduled" : "now";
+  const publishMode = formData.get("publish_mode");
   const publishLocal = String(formData.get("published_at_local") ?? "");
-  const publishedAt = publishMode === "now" ? new Date().toISOString() : saoPauloDateTimeInputToIso(publishLocal);
+  const publishedAt = publishMode === "now" ? new Date().toISOString()
+    : publishMode === "scheduled" ? saoPauloDateTimeInputToIso(publishLocal) : null;
   const scheduledFor = String(formData.get("scheduled_for") ?? "").trim();
 
   const parsed = z.object({
     module_id: postgresUuidSchema("Escolha um módulo."),
     title: z.string().trim().min(2, "Digite o título da aula.").max(160, "Use até 160 caracteres."),
-    content: z.string().trim().min(1, "Digite o texto da aula.").max(30_000, "O texto está muito longo."),
+    content: z.string().trim().max(30_000, "O texto está muito longo."),
     scheduled_for: z.union([z.literal(""), z.iso.date("Use uma data válida no cronograma.")]),
   }).safeParse({
     module_id: formData.get("module_id"),
@@ -40,14 +39,11 @@ function parseLessonForm(formData: FormData) {
       fieldErrors[key] = messages?.[0] ?? "";
     });
   }
-  if (youtubeUrl && !isValidYouTubeUrl(youtubeUrl)) {
-    fieldErrors.youtube_url = "Cole uma URL válida do YouTube.";
-  }
-  if (!publishedAt) {
-    fieldErrors.published_at_local = "Escolha uma data e hora válidas para publicar.";
+  if (publishMode === "scheduled" && (!publishedAt || Date.parse(publishedAt) <= Date.now())) {
+    fieldErrors.published_at_local = "Escolha uma data futura para publicar.";
   }
 
-  if (!parsed.success || Object.keys(fieldErrors).length > 0 || !publishedAt) {
+  if (!parsed.success || Object.keys(fieldErrors).length > 0) {
     return { ok: false as const, state: actionError("Revise os campos indicados.", fieldErrors) };
   }
 
@@ -57,7 +53,6 @@ function parseLessonForm(formData: FormData) {
       module_id: parsed.data.module_id,
       title: parsed.data.title,
       content: parsed.data.content,
-      youtube_url: youtubeUrl || null,
       published_at: publishedAt,
       scheduled_for: parsed.data.scheduled_for || null,
     },
@@ -65,24 +60,7 @@ function parseLessonForm(formData: FormData) {
 }
 
 export async function createLessonAction(
-  _state: LessonActionState,
-  formData: FormData,
-): Promise<LessonActionState> {
-  await requireProfessor();
-  const parsed = parseLessonForm(formData);
-  if (!parsed.ok) return parsed.state;
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("lessons").insert(parsed.value).select("id").single();
-
-  if (error || !data) return actionError("Não foi possível publicar a aula. Tente novamente.");
-  revalidatePath("/");
-  revalidatePath("/cronograma");
-  return { ok: true, message: "Aula salva.", lessonId: data.id };
-}
-
-export async function updateLessonAction(
   lessonId: string,
-  _state: LessonActionState,
   formData: FormData,
 ): Promise<LessonActionState> {
   await requireProfessor();
@@ -90,10 +68,33 @@ export async function updateLessonAction(
   const parsed = parseLessonForm(formData);
   if (!parsed.ok) return parsed.state;
   const supabase = await createClient();
-  const { error } = await supabase.from("lessons").update(parsed.value).eq("id", lessonId);
-  if (error) return actionError("Não foi possível salvar a aula. Tente novamente.");
+  const { data, error } = await supabase.from("lessons").insert({ ...parsed.value, id: lessonId }).select("id").single();
+  if (error?.code === "23505") return updateLessonAction(lessonId, formData);
+
+  if (error || !data) return actionError("Não foi possível salvar a aula. Tente novamente.");
+  revalidatePath("/");
+  revalidatePath("/cronograma");
+  return { ok: true, message: "Aula salva.", lessonId: data.id };
+}
+
+export async function updateLessonAction(
+  lessonId: string,
+  formData: FormData,
+): Promise<LessonActionState> {
+  await requireProfessor();
+  if (!uuid.safeParse(lessonId).success) return actionError("Aula inválida.");
+  const parsed = parseLessonForm(formData);
+  if (!parsed.ok) return parsed.state;
+  const supabase = await createClient();
+  const { data: lesson, error: lookupError } = await supabase.from("lessons").select("published_at").eq("id", lessonId).maybeSingle();
+  if (lookupError || !lesson) return actionError("Aula não encontrada.");
+  const publishedAt = formData.get("publish_mode") === "now" && lesson.published_at && Date.parse(lesson.published_at) <= Date.now()
+    ? lesson.published_at : parsed.value.published_at;
+  const { error } = await supabase.from("lessons").update({ ...parsed.value, published_at: publishedAt }).eq("id", lessonId);
+  if (error) return actionError(error.code === "P0001" ? error.message : "Não foi possível salvar a aula. Tente novamente.");
   revalidatePath("/");
   revalidatePath(`/lessons/${lessonId}`);
+  revalidatePath("/atividades");
   revalidatePath("/cronograma");
   return { ok: true, message: "Aula atualizada.", lessonId };
 }
@@ -109,10 +110,10 @@ export async function createLessonCommentAction(
   if (!parsedBody.success) return actionError(parsedBody.error.issues[0]?.message ?? "Comentário inválido.");
 
   const supabase = await createClient();
-  const { data: lesson, error: lessonError } = await supabase.from("lessons").select("youtube_url").eq("id", lessonId).single();
+  const { data: lesson, error: lessonError } = await supabase.from("lessons").select("video_status").eq("id", lessonId).single();
   if (lessonError || !lesson) return actionError("Esta aula não está disponível.");
-  const safeSeconds = lesson.youtube_url && typeof tSeconds === "number" && Number.isFinite(tSeconds)
-    ? Math.max(0, Math.floor(tSeconds))
+  const safeSeconds = lesson.video_status === "ready" && typeof tSeconds === "number" && Number.isFinite(tSeconds)
+    ? Math.max(0, Math.min(24 * 60 * 60, Math.floor(tSeconds)))
     : null;
   const { error } = await supabase.from("lesson_comments").insert({
     lesson_id: lessonId,

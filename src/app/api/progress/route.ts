@@ -25,23 +25,12 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: "Dados de progresso inválidos." }, { status: 400 });
 
   const supabase = await createClient();
-  const { data: current } = await supabase
-    .from("lesson_progress")
-    .select("watched")
-    .eq("lesson_id", parsed.data.lessonId)
-    .eq("user_id", auth.id)
-    .maybeSingle();
-  const watched = parsed.data.manual
-    ? Boolean(parsed.data.watched)
-    : Boolean(current?.watched || parsed.data.watched);
-  const { error } = await supabase.from("lesson_progress").upsert({
-    lesson_id: parsed.data.lessonId,
-    user_id: auth.id,
-    last_seconds: Math.floor(parsed.data.lastSeconds),
-    watched,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: "lesson_id,user_id" });
-
-  if (error) return Response.json({ error: "Não foi possível salvar o progresso." }, { status: 500 });
+  const { data: watched, error } = await supabase.rpc("save_lesson_progress", {
+    p_lesson_id: parsed.data.lessonId,
+    p_seconds: Math.floor(parsed.data.lastSeconds),
+    p_watched: Boolean(parsed.data.watched),
+    p_manual: Boolean(parsed.data.manual),
+  });
+  if (error) return Response.json({ error: "Não foi possível salvar o progresso." }, { status: error.code === "42501" ? 404 : 500 });
   return Response.json({ watched });
 }

@@ -20,9 +20,9 @@ export type Lesson = {
   module_id: string;
   title: string;
   content: string;
-  youtube_url: string | null;
+  video_status: "none" | "migration_required" | "uploading" | "processing" | "failed" | "ready";
   position: number;
-  published_at: string;
+  published_at: string | null;
   scheduled_for: string | null;
 };
 

@@ -9,7 +9,6 @@ import { requireUser } from "@/lib/auth";
 import { postgresUuidSchema } from "@/lib/schemas";
 import { storageFileUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/server";
-import { extractYouTubeVideoId } from "@/lib/youtube";
 import type { Comment, Lesson, Material, Profile, Progress } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Aula" };
@@ -26,7 +25,7 @@ export default async function LessonPage({
   const { conversa } = await searchParams;
   const supabase = await createClient();
   const [{ data, error }, materialsResult, commentsResult, activitiesResult] = await Promise.all([
-    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,published_at,scheduled_for").eq("id", id).maybeSingle(),
+    supabase.from("lessons").select("id,module_id,title,content,video_status,position,published_at,scheduled_for").eq("id", id).maybeSingle(),
     supabase.from("materials").select("id,lesson_id,name,storage_path,mime_type,size_bytes").eq("lesson_id", id).order("created_at"),
     supabase.from("lesson_comments").select("id,lesson_id,author_id,body,t_seconds,created_at").eq("lesson_id", id).order("created_at"),
     supabase.from("activities").select(activitySummaryColumns).eq("lesson_id", id).order("created_at"),
@@ -60,7 +59,6 @@ export default async function LessonPage({
   const commentsWithProfiles = comments.map((item) => ({ ...item, profiles: profiles.get(item.author_id) ?? null }));
   const materials = (materialsResult.data ?? []) as Material[];
   const publication = activityPublication(lesson.published_at);
-  const videoId = lesson.youtube_url ? extractYouTubeVideoId(lesson.youtube_url) : null;
 
   return (
     <main className="container page lesson-page">
@@ -77,7 +75,7 @@ export default async function LessonPage({
       <div className="classroom-grid">
         <LessonExperience
           key={id}
-          lessonId={id} lessonTitle={lesson.title} videoId={videoId}
+          lessonId={id} lessonTitle={lesson.title} videoStatus={lesson.video_status}
           initialSeconds={progress?.last_seconds ?? 0} initialWatched={progress?.watched ?? false}
           canTrack={auth.role === "aluno"} comments={commentsWithProfiles}
           curriculum={(
@@ -106,7 +104,7 @@ export default async function LessonPage({
             <a href="#sobre">Aula</a><a href="#materiais">Materiais</a><a href="#atividades-da-aula">Atividades</a><a href="#comments-title">Comentários</a>
           </nav>
           <article className="lesson-body">
-            <section aria-labelledby="sobre"><h2 id="sobre">Sobre a aula</h2><div className="reading">{lesson.content}</div></section>
+            <section aria-labelledby="sobre"><h2 id="sobre">Sobre a aula</h2>{lesson.content ? <div className="reading">{lesson.content}</div> : <p className="muted">Sem texto complementar.</p>}</section>
             <section aria-labelledby="materiais"><h2 id="materiais">Materiais</h2>
               {materials.length ? <ul className="download-list">{materials.map((material) => (
                 <li key={material.id}>

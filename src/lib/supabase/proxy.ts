@@ -32,8 +32,9 @@ export async function updateSession(request: NextRequest) {
 
   const { data } = await supabase.auth.getClaims();
   const isLogin = request.nextUrl.pathname === "/login";
+  const isApi = request.nextUrl.pathname.startsWith("/api/");
 
-  if (!data?.claims && !isLogin) {
+  if (!data?.claims && !isLogin && !isApi) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.search = "";

@@ -16,12 +16,13 @@ export default async function NewLessonPage() {
 
   return (
     <main className="container page">
-      <div className="page-header"><div><h1>Nova aula</h1><p className="page-description">Publique o conteúdo, o vídeo, os PDFs e a data desta aula.</p></div></div>
+      <div className="lesson-breadcrumb"><Link href="/">Curso</Link></div>
+      <div className="page-header"><div><h1>Nova aula</h1><p className="page-description">Prepare o conteúdo da aula e escolha quando a turma poderá acessá-la.</p></div></div>
       {modules.length === 0 ? (
         <EmptyState title="Crie um módulo primeiro" action={<Link className="button" href="/?editar=1">Organizar curso</Link>}>
           <p>A aula precisa pertencer a um módulo. Volte ao curso e crie o primeiro.</p>
         </EmptyState>
-      ) : <section className="panel"><LessonForm modules={modules} /></section>}
+      ) : <LessonForm modules={modules} />}
     </main>
   );
 }

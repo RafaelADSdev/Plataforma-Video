@@ -54,6 +54,8 @@ begin
     question_id := (question ->> 'id')::uuid;
     correct_id := (question ->> 'correctOptionId')::uuid;
     if question_id is null or question_id = any(seen_questions)
+      or question ->> 'id' <> question_id::text or question ->> 'correctOptionId' <> correct_id::text
+      or jsonb_typeof(question -> 'prompt') is distinct from 'string'
       or coalesce(char_length(btrim(question ->> 'prompt')), 0) not between 1 and 2000
       or jsonb_typeof(question -> 'options') is distinct from 'array' then
       raise exception 'Preencha o enunciado de cada questão.' using errcode = 'P0001';
@@ -66,6 +68,7 @@ begin
     for choice in select value from jsonb_array_elements(question -> 'options') loop
       choice_id := (choice ->> 'id')::uuid;
       if choice_id is null or choice_id = any(seen_choices)
+        or choice ->> 'id' <> choice_id::text or jsonb_typeof(choice -> 'text') is distinct from 'string'
         or coalesce(char_length(btrim(choice ->> 'text')), 0) not between 1 and 500 then
         raise exception 'Preencha todas as alternativas.' using errcode = 'P0001';
       end if;

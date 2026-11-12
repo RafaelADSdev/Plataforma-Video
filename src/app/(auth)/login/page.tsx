@@ -16,7 +16,7 @@ export default function LoginPage() {
             Sala do Curso
           </p>
           <div className="login-intro-copy">
-            <p className="login-lede">Sua sala<br />de estudo.</p>
+            <p className="login-lede">Sua sala<br /> de estudo.</p>
             <p className="login-description">Acesse as aulas e atividades do seu cursinho.</p>
           </div>
           <div className="login-illustration" aria-hidden="true">

@@ -40,7 +40,7 @@ export function NavLinks({ role }: { role: Role }) {
     <>
       <nav aria-label="Navegação principal" className="workspace-nav">
         <div className="nav-group">
-          <span className="nav-group-label">{staff ? "Curso" : "Estudo"}</span>
+          <span className="nav-group-label">{staff ? "Conteúdo" : "Estudo"}</span>
           {primary.map(link)}
           {link(community)}
           {!staff ? link(notifications) : null}

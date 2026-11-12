@@ -16,6 +16,8 @@ import type { Course, Lesson, Module, Progress } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Curso" };
 
+type CourseLesson = Pick<Lesson, "id" | "module_id" | "title" | "video_status" | "position" | "published_at">;
+
 export default async function CourseHome({ searchParams }: { searchParams: Promise<{ editar?: string }> }) {
   const auth = await requireUser();
   const { editar } = await searchParams;
@@ -24,7 +26,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   const [courseResult, moduleResult, lessonResult, progressResult, activityResult] = await Promise.all([
     supabase.from("courses").select("id,title,description,cover_path").limit(1).maybeSingle(),
     supabase.from("modules").select("id,course_id,title,position,scheduled_for").order("position").order("id"),
-    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,published_at,scheduled_for").order("position").order("id"),
+    supabase.from("lessons").select("id,module_id,title,video_status,position,published_at").order("position").order("id"),
     auth.role === "aluno"
       ? supabase.from("lesson_progress").select("lesson_id,user_id,last_seconds,watched,updated_at").eq("user_id", auth.id)
       : Promise.resolve({ data: [], error: null }),
@@ -35,7 +37,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   }
   const course = courseResult.data as Course | null;
   const modules = (moduleResult.data ?? []) as Module[];
-  const lessons = (lessonResult.data ?? []) as Lesson[];
+  const lessons = (lessonResult.data ?? []) as CourseLesson[];
   const progress = (progressResult.data ?? []) as Progress[];
   const activities = (activityResult.data ?? []) as ActivitySummary[];
   const sideActivities = (auth.isStaff ? activities : activities.filter((item) => activityResponseCount(item) === 0).sort(byActivityDueDate)).slice(0, 3);
@@ -45,11 +47,12 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   const orderedLessons = modules.flatMap((module) => lessons.filter((lesson) => lesson.module_id === module.id));
   const lessonsById = new Map(lessons.map((lesson) => [lesson.id, lesson]));
   const resume = progress
-    .filter((item) => !item.watched && item.last_seconds > 0 && lessonsById.has(item.lesson_id))
+    .filter((item) => !item.watched && item.last_seconds > 0 && lessonsById.get(item.lesson_id)?.video_status === "ready")
     .sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0];
   const nextLesson = (resume ? lessonsById.get(resume.lesson_id) : undefined)
-    ?? orderedLessons.find((lesson) => !progressByLesson.get(lesson.id)?.watched);
+    ?? orderedLessons.find((lesson) => ["none", "ready"].includes(lesson.video_status) && !progressByLesson.get(lesson.id)?.watched);
   const finished = lessons.filter((lesson) => progressByLesson.get(lesson.id)?.watched).length;
+  const allFinished = lessons.length > 0 && finished === lessons.length;
 
   if (!course) {
     return <main className="container page"><EmptyState title="Curso não configurado"><p>Aplique a migração inicial do Supabase para criar o curso.</p></EmptyState></main>;
@@ -67,13 +70,13 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
         {auth.isStaff ? <Link className="button secondary" href="/course/edit"><Settings2 size={17} aria-hidden="true" /> Dados do curso</Link> : null}
       </header>
 
-      <section className={`study-feature${coverUrl ? " has-cover" : ""}`} aria-labelledby="study-feature-title">
+      <section className="study-feature" aria-labelledby="study-feature-title">
         <div className="study-feature-copy">
           <p className="feature-label">
             {auth.isStaff ? <BookOpen size={17} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}
             {auth.isStaff ? "Área do professor" : resume ? "Continue estudando" : nextLesson ? "Próxima aula" : "Seu curso"}
           </p>
-          <h2 id="study-feature-title">{auth.isStaff ? "Organize o conteúdo" : nextLesson?.title ?? (lessons.length ? "Aulas em dia" : "Aulas em preparação")}</h2>
+          <h2 id="study-feature-title">{auth.isStaff ? "Organize o conteúdo" : nextLesson?.title ?? (allFinished ? "Aulas em dia" : "Aulas em preparação")}</h2>
           {nextLesson && !auth.isStaff ? <p>{modulesById.get(nextLesson.module_id)?.title}{resume ? ` · Parou em ${formatVideoTime(resume.last_seconds)}` : ""}</p> : null}
           {auth.isStaff ? (
             <div className="cluster feature-actions">
@@ -163,9 +166,9 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
                           <li key={`${item.type}-${item.id}`} className="lesson-row">
                             <Link href={href} className="lesson-link">
                               <span className="lesson-position">{item.type === "activity" ? <ActivityIcon kind={item.kind} /> : itemIndex + 1}</span>
-                              <span className="lesson-main"><strong>{item.title}</strong><span className="lesson-meta">{item.type === "activity" ? activityKindLabel(item.kind) : `${item.youtube_url ? "Vídeo" : "Leitura"}${linkedLessonIds.has(item.id) ? " · Com atividade" : ""}`}</span></span>
+                              <span className="lesson-main"><strong>{item.title}</strong><span className="lesson-meta">{item.type === "activity" ? activityKindLabel(item.kind) : `${item.video_status === "none" ? "Leitura" : item.video_status === "ready" ? "Vídeo" : "Vídeo em preparação"}${linkedLessonIds.has(item.id) ? " · Com atividade" : ""}`}</span></span>
                               <span className="lesson-status">
-                                {itemProgress?.watched ? <span className="badge success"><Check aria-hidden="true" size={13} /> Vista</span> : itemProgress && itemProgress.last_seconds > 0 ? <span className="badge primary"><Clock3 aria-hidden="true" size={13} /> Em andamento</span> : null}
+                                {itemProgress?.watched ? <span className="badge success"><Check aria-hidden="true" size={13} /> Concluída</span> : itemProgress && itemProgress.last_seconds > 0 ? <span className="badge primary"><Clock3 aria-hidden="true" size={13} /> Em andamento</span> : null}
                                 {auth.isStaff ? <span className={`badge ${publication.tone}`}>{publication.label}</span> : null}
                               </span>
                             </Link>
