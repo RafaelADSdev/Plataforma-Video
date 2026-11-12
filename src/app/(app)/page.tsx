@@ -198,7 +198,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
           <section className="panel study-side-panel">
             <span className="study-side-icon"><CalendarDays size={21} aria-hidden="true" /></span>
             <h2>Cronograma</h2>
-            <p className="muted">{auth.isStaff ? "Organize a semana recomendada para a turma." : "Consulte a semana recomendada e organize seus horários."}</p>
+            <p className="muted">{auth.isStaff ? "Monte um plano mensal ou organize a semana recomendada." : "Monte e baixe seu plano mensal de estudos."}</p>
             <Link className="inline-link" href="/cronograma">Ver cronograma <ArrowRight size={17} aria-hidden="true" /></Link>
           </section>
         </aside>
