@@ -404,6 +404,14 @@
   max-width: 56rem;
 }
 
+.authoring-form .form-row {
+  align-items: start;
+}
+
+.authoring-form .form-row :is(.input, .select) {
+  min-height: 3.25rem;
+}
+
 .authoring-section {
   display: grid;
   gap: 0.95rem;

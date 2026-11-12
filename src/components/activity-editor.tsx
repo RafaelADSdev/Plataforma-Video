@@ -216,8 +216,8 @@ export function ActivityEditor({
             </select>
           </div>
           <div className="field"><label htmlFor="activity-due">Prazo de entrega</label>
-            <input id="activity-due" name="due_at" type="datetime-local" className="input" defaultValue={activity?.due_at ? toSaoPauloDateTimeInput(activity.due_at) : ""} />
-            <p className="field-hint">Opcional. Envio após o prazo continua disponível.</p>
+            <input id="activity-due" name="due_at" type="datetime-local" className="input" aria-describedby="activity-due-hint" defaultValue={activity?.due_at ? toSaoPauloDateTimeInput(activity.due_at) : ""} />
+            <p className="field-hint" id="activity-due-hint">Opcional. Envio após o prazo continua disponível.</p>
           </div>
         </div>
         {publication === "scheduled" ? <div className="field">
