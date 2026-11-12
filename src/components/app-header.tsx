@@ -21,7 +21,7 @@ export function AppHeader({ auth, displayName }: { auth: AuthContext; displayNam
           <span className="app-name">Sala do Curso</span>
         </Link>
         <div className="workspace-mobile-actions">
-          {auth.isStaff ? <Link className="icon-button" href="/notificacoes" aria-label="Notificações"><Bell size={19} aria-hidden="true" /></Link> : null}
+          <Link className="icon-button" href="/notificacoes" aria-label="Notificações"><Bell size={19} aria-hidden="true" /></Link>
           <ThemeToggle />
         </div>
       </div>

@@ -3,22 +3,19 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState, useTransition } from "react";
 import { reorderModuleAction } from "@/app/actions/course";
-import { reorderLessonAction } from "@/app/actions/lessons";
+import { reorderCourseItemAction } from "@/app/actions/activities";
 
-export function ReorderButton({
-  kind,
-  id,
-  direction,
-  disabled = false,
-}: {
-  kind: "module" | "lesson";
+type Props = {
   id: string;
   direction: "up" | "down";
   disabled?: boolean;
-}) {
+} & ({ kind: "module" } | { kind: "lesson" | "activity"; moduleId: string });
+
+export function ReorderButton(props: Props) {
+  const { kind, id, direction, disabled = false } = props;
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
-  const label = `${direction === "up" ? "Mover para cima" : "Mover para baixo"} ${kind === "module" ? "o módulo" : "a aula"}`;
+  const label = `${direction === "up" ? "Mover para cima" : "Mover para baixo"} ${kind === "module" ? "o módulo" : kind === "activity" ? "a atividade" : "a aula"}`;
   const Icon = direction === "up" ? ArrowUp : ArrowDown;
 
   return (
@@ -31,9 +28,9 @@ export function ReorderButton({
         disabled={disabled || pending}
         onClick={() => startTransition(async () => {
           setError("");
-          const result = kind === "module"
+          const result = props.kind === "module"
             ? await reorderModuleAction(id, direction)
-            : await reorderLessonAction(id, direction);
+            : await reorderCourseItemAction(props.moduleId, id, props.kind, direction);
           if (!result.ok && result.message) setError(result.message);
         })}
       >

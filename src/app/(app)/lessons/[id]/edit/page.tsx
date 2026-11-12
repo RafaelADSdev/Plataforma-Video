@@ -13,7 +13,7 @@ export default async function EditLessonPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createClient();
   const [{ data: lessonData }, { data: modulesData }, { data: materialsData }] = await Promise.all([
-    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,requires_submission,published_at,scheduled_for").eq("id", id).maybeSingle(),
+    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,published_at,scheduled_for").eq("id", id).maybeSingle(),
     supabase.from("modules").select("id,course_id,title,position,scheduled_for").order("position"),
     supabase.from("materials").select("id,lesson_id,name,storage_path,mime_type,size_bytes").eq("lesson_id", id).order("created_at"),
   ]);

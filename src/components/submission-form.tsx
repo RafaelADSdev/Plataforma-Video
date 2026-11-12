@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { recordSubmissionAction } from "@/app/actions/lessons";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
+import { recordSubmissionAction } from "@/app/actions/activities";
 import { createClient } from "@/lib/supabase/client";
-import { storageFileUrl } from "@/lib/storage";
+import { sanitizeStorageName, storageFileUrl } from "@/lib/storage";
 import { validateSubmissionFile } from "@/lib/validation";
 import type { Submission } from "@/types/domain";
 
-export function SubmissionForm({ lessonId, userId, submission }: { lessonId: string; userId: string; submission: Submission | null }) {
+export function SubmissionForm({ activityId, userId, submission }: { activityId: string; userId: string; submission: Submission | null }) {
+  const router = useRouter();
+  const staged = useRef<{ file: File; path: string } | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [ok, setOk] = useState(false);
@@ -17,7 +20,7 @@ export function SubmissionForm({ lessonId, userId, submission }: { lessonId: str
     <div className="stack">
       {submission ? (
         <p className="current-file">Seu envio atual: <Link href={`${storageFileUrl("submissions", submission.storage_path)}?nome=${encodeURIComponent(submission.file_name)}`} target="_blank" rel="noreferrer">{submission.file_name}</Link></p>
-      ) : <p className="muted">Você ainda não enviou nenhum arquivo para esta aula.</p>}
+      ) : null}
       <form className="form-grid" onSubmit={async (event) => {
         event.preventDefault();
         setMessage("");
@@ -35,27 +38,28 @@ export function SubmissionForm({ lessonId, userId, submission }: { lessonId: str
           return;
         }
         setPending(true);
-        const storagePath = `${userId}/${lessonId}/entrega`;
-        const supabase = createClient();
-        const { error } = await supabase.storage.from("submissions").upload(storagePath, file, {
-          contentType: validation.mimeType,
-          cacheControl: "3600",
-          upsert: true,
-        });
-        if (error) {
-          setMessage("Não foi possível enviar o arquivo. Tente novamente.");
+        try {
+          if (staged.current?.file !== file) {
+            const path = `${userId}/${activityId}/${crypto.randomUUID()}-${sanitizeStorageName(file.name).slice(-150)}`;
+            const { error } = await createClient().storage.from("submissions").upload(path, file, {
+              contentType: validation.mimeType,
+            });
+            if (error) throw error;
+            staged.current = { file, path };
+          }
+          const result = await recordSubmissionAction(activityId, { path: staged.current.path, name: file.name });
+          setMessage(result.message ?? "");
+          setOk(result.ok);
+          if (result.ok) {
+            staged.current = null;
+            form.reset();
+            router.refresh();
+          }
+        } catch {
+          setMessage("Não foi possível concluir o envio. Tente novamente.");
+        } finally {
           setPending(false);
-          return;
         }
-        const result = await recordSubmissionAction(lessonId, {
-          storagePath,
-          fileName: file.name,
-          mimeType: validation.mimeType,
-          sizeBytes: file.size,
-        });
-        setMessage(result.message ?? (result.ok ? "Entrega enviada." : "Não foi possível registrar a entrega."));
-        setOk(result.ok);
-        setPending(false);
       }}>
         <div className="field">
           <label htmlFor="submission">Arquivo da entrega</label>

@@ -3,6 +3,7 @@ import Script from "next/script";
 import { bricolage, inter } from "@/lib/fonts";
 import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
+import "./learning.css";
 
 export const metadata: Metadata = {
   title: {

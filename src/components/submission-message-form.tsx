@@ -2,16 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createSubmissionMessageAction } from "@/app/actions/lessons";
+import { createSubmissionMessageAction } from "@/app/actions/activities";
+import { sanitizeStorageName } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
 import { validateSubmissionFile } from "@/lib/validation";
 
 export function SubmissionMessageForm({
-  lessonId,
+  activityId,
   studentId,
+  userId,
   isStaff,
 }: {
-  lessonId: string;
+  activityId: string;
   studentId: string;
+  userId: string;
   isStaff: boolean;
 }) {
   const router = useRouter();
@@ -37,22 +41,31 @@ export function SubmissionMessageForm({
           setMessage("Escreva uma mensagem ou anexe a atividade corrigida.");
           return;
         }
-        if (file) {
-          const validation = validateSubmissionFile(file);
-          if (!validation.ok) {
-            setMessage(validation.error);
-            return;
-          }
-        }
-
         setPending(true);
-        const result = await createSubmissionMessageAction(lessonId, studentId, formData);
-        setMessage(result.message ?? (result.ok ? "Mensagem enviada." : "Não foi possível enviar a mensagem."));
-        setOk(result.ok);
-        setPending(false);
-        if (result.ok) {
-          form.reset();
-          router.refresh();
+        try {
+          let uploaded = null;
+          if (file) {
+            const validation = validateSubmissionFile(file);
+            if (!validation.ok) {
+              setMessage(validation.error);
+              return;
+            }
+            const path = `${studentId}/${activityId}/${userId}/${crypto.randomUUID()}-${sanitizeStorageName(file.name).slice(-150)}`;
+            const { error } = await createClient().storage.from("feedback").upload(path, file, { contentType: validation.mimeType });
+            if (error) throw error;
+            uploaded = { path, name: file.name };
+          }
+          const result = await createSubmissionMessageAction(activityId, studentId, body, uploaded);
+          setMessage(result.message ?? "");
+          setOk(result.ok);
+          if (result.ok) {
+            form.reset();
+            router.refresh();
+          }
+        } catch {
+          setMessage("Não foi possível concluir o envio. Tente novamente.");
+        } finally {
+          setPending(false);
         }
       }}
     >

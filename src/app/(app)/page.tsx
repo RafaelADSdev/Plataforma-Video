@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, FilePlus2, Play, Settings2 } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, Check, ClipboardPlus, Clock3, FilePlus2, Play, Settings2 } from "lucide-react";
 import { createModuleAction, updateModuleAction } from "@/app/actions/course";
 import { ActionForm } from "@/components/action-form";
+import { ActivityIcon, ActivitySidePanel } from "@/components/activity-list";
 import { EmptyState } from "@/components/empty-state";
 import { ReorderButton } from "@/components/reorder-button";
+import { activityKindLabel, activityPublication, activityResponseCount, activitySummaryColumns, byActivityDueDate, type ActivitySummary } from "@/lib/activities";
 import { requireUser } from "@/lib/auth";
 import { storageFileUrl } from "@/lib/storage";
-import { formatDateInSaoPaulo, formatDateTimeInSaoPaulo, formatVideoTime, isFutureDate } from "@/lib/time";
+import { formatDateInSaoPaulo, formatVideoTime } from "@/lib/time";
 import { createClient } from "@/lib/supabase/server";
 import type { Course, Lesson, Module, Progress } from "@/types/domain";
 
@@ -19,19 +21,25 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
   const { editar } = await searchParams;
   const editMode = auth.isStaff && editar === "1";
   const supabase = await createClient();
-  const [{ data: courseData }, { data: moduleData }, { data: lessonData }, { data: progressData }] = await Promise.all([
+  const [courseResult, moduleResult, lessonResult, progressResult, activityResult] = await Promise.all([
     supabase.from("courses").select("id,title,description,cover_path").limit(1).maybeSingle(),
-    supabase.from("modules").select("id,course_id,title,position,scheduled_for").order("position"),
-    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,requires_submission,published_at,scheduled_for").order("position"),
+    supabase.from("modules").select("id,course_id,title,position,scheduled_for").order("position").order("id"),
+    supabase.from("lessons").select("id,module_id,title,content,youtube_url,position,published_at,scheduled_for").order("position").order("id"),
     auth.role === "aluno"
       ? supabase.from("lesson_progress").select("lesson_id,user_id,last_seconds,watched,updated_at").eq("user_id", auth.id)
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("activities").select(activitySummaryColumns).order("created_at", { ascending: false }),
   ]);
-
-  const course = courseData as Course | null;
-  const modules = (moduleData ?? []) as Module[];
-  const lessons = (lessonData ?? []) as Lesson[];
-  const progress = (progressData ?? []) as Progress[];
+  if (courseResult.error || moduleResult.error || lessonResult.error || progressResult.error || activityResult.error) {
+    throw new Error("Não foi possível carregar o curso.");
+  }
+  const course = courseResult.data as Course | null;
+  const modules = (moduleResult.data ?? []) as Module[];
+  const lessons = (lessonResult.data ?? []) as Lesson[];
+  const progress = (progressResult.data ?? []) as Progress[];
+  const activities = (activityResult.data ?? []) as ActivitySummary[];
+  const sideActivities = (auth.isStaff ? activities : activities.filter((item) => activityResponseCount(item) === 0).sort(byActivityDueDate)).slice(0, 3);
+  const linkedLessonIds = new Set(activities.map((item) => item.lesson_id).filter(Boolean));
   const progressByLesson = new Map(progress.map((item) => [item.lesson_id, item]));
   const modulesById = new Map(modules.map((module) => [module.id, module]));
   const orderedLessons = modules.flatMap((module) => lessons.filter((lesson) => lesson.module_id === module.id));
@@ -70,6 +78,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
           {auth.isStaff ? (
             <div className="cluster feature-actions">
               <Link className="button feature-button" href="/lessons/new"><FilePlus2 aria-hidden="true" size={17} /> Nova aula</Link>
+              <Link className="button feature-secondary" href="/atividades/nova"><ClipboardPlus size={17} aria-hidden="true" /> Nova atividade</Link>
               <Link className="button feature-secondary" href={editMode ? "/" : "/?editar=1"}>{editMode ? "Concluir organização" : "Organizar módulos"}</Link>
             </div>
           ) : nextLesson ? (
@@ -104,7 +113,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
 
       <div className="study-grid">
       <section aria-labelledby="modules-title" className="modules-section">
-        <div className="section-heading"><h2 id="modules-title">Módulos e aulas</h2></div>
+        <div className="section-heading"><h2 id="modules-title">Módulos do curso</h2></div>
         {modules.length === 0 ? (
           <EmptyState title="O curso ainda não tem módulos" action={auth.isStaff ? <Link className="button" href="/?editar=1">Criar primeiro módulo</Link> : undefined}>
             <p>{auth.isStaff ? "Crie o primeiro módulo para começar a organizar as aulas." : "A organização ainda está preparando o conteúdo. Volte em breve."}</p>
@@ -113,6 +122,10 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
           <div className="module-list">
             {modules.map((module, moduleIndex) => {
               const moduleLessons = lessons.filter((lesson) => lesson.module_id === module.id).sort((a, b) => a.position - b.position);
+              const moduleItems = [
+                ...moduleLessons.map((lesson) => ({ type: "lesson" as const, ...lesson })),
+                ...activities.filter((activity) => activity.module_id === module.id && !activity.lesson_id).map((activity) => ({ type: "activity" as const, ...activity })),
+              ].sort((a, b) => a.position - b.position);
               const moduleFinished = moduleLessons.filter((lesson) => progressByLesson.get(lesson.id)?.watched).length;
               return (
                 <article className="module-block" key={module.id}>
@@ -138,30 +151,31 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
                       </ActionForm>
                     </div>
                   ) : null}
-                  {moduleLessons.length === 0 ? (
-                    <p className="module-empty">Este módulo ainda não tem aulas. {auth.isStaff ? "Crie uma aula e selecione este módulo." : "O conteúdo será publicado em breve."}</p>
+                  {moduleItems.length === 0 ? (
+                    <p className="module-empty">{auth.isStaff ? "Adicione uma aula ou atividade a este módulo." : "As aulas e atividades aparecem aqui quando forem publicadas."}</p>
                   ) : (
                     <ol className="lesson-list">
-                      {moduleLessons.map((lesson, lessonIndex) => {
-                        const itemProgress = progressByLesson.get(lesson.id);
-                        const future = isFutureDate(lesson.published_at);
+                      {moduleItems.map((item, itemIndex) => {
+                        const itemProgress = item.type === "lesson" ? progressByLesson.get(item.id) : undefined;
+                        const publication = activityPublication(item.published_at);
+                        const href = item.type === "lesson" ? `/lessons/${item.id}` : `/atividades/${item.id}`;
                         return (
-                          <li key={lesson.id} className="lesson-row">
-                            <Link href={`/lessons/${lesson.id}`} className="lesson-link">
-                              <span className="lesson-position">{lesson.position}</span>
-                              <span className="lesson-main"><strong>{lesson.title}</strong><span className="lesson-meta">{lesson.youtube_url ? "Vídeo" : "Leitura"}{lesson.requires_submission ? " · Com entrega" : ""}</span></span>
+                          <li key={`${item.type}-${item.id}`} className="lesson-row">
+                            <Link href={href} className="lesson-link">
+                              <span className="lesson-position">{item.type === "activity" ? <ActivityIcon kind={item.kind} /> : itemIndex + 1}</span>
+                              <span className="lesson-main"><strong>{item.title}</strong><span className="lesson-meta">{item.type === "activity" ? activityKindLabel(item.kind) : `${item.youtube_url ? "Vídeo" : "Leitura"}${linkedLessonIds.has(item.id) ? " · Com atividade" : ""}`}</span></span>
                               <span className="lesson-status">
                                 {itemProgress?.watched ? <span className="badge success"><Check aria-hidden="true" size={13} /> Vista</span> : itemProgress && itemProgress.last_seconds > 0 ? <span className="badge primary"><Clock3 aria-hidden="true" size={13} /> Em andamento</span> : null}
-                                {auth.isStaff && future ? <span className="badge warning">Agendada · {formatDateTimeInSaoPaulo(lesson.published_at)}</span> : null}
+                                {auth.isStaff ? <span className={`badge ${publication.tone}`}>{publication.label}</span> : null}
                               </span>
                             </Link>
                             {editMode ? (
                               <div className="lesson-admin-actions">
                                 <div className="reorder-pair">
-                                  <ReorderButton kind="lesson" id={lesson.id} direction="up" disabled={lessonIndex === 0} />
-                                  <ReorderButton kind="lesson" id={lesson.id} direction="down" disabled={lessonIndex === moduleLessons.length - 1} />
+                                  <ReorderButton kind={item.type} moduleId={module.id} id={item.id} direction="up" disabled={itemIndex === 0} />
+                                  <ReorderButton kind={item.type} moduleId={module.id} id={item.id} direction="down" disabled={itemIndex === moduleItems.length - 1} />
                                 </div>
-                                <Link className="button ghost small" href={`/lessons/${lesson.id}/edit`}>Editar</Link>
+                                <Link className="button ghost small" href={`${href}/${item.type === "lesson" ? "edit" : "editar"}`}>Editar</Link>
                               </div>
                             ) : null}
                           </li>
@@ -177,6 +191,7 @@ export default async function CourseHome({ searchParams }: { searchParams: Promi
       </section>
       {!editMode ? (
         <aside className="study-side" aria-label="Links do curso">
+          <ActivitySidePanel items={sideActivities} staff={auth.isStaff} />
           <section className="panel study-side-panel">
             <span className="study-side-icon"><CalendarDays size={21} aria-hidden="true" /></span>
             <h2>Cronograma</h2>

@@ -1,0 +1,411 @@
+.content-type {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.55rem;
+  color: var(--primary);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.view-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.6rem;
+}
+
+.view-filters a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.view-filters a:hover, .view-filters a[aria-current="page"] {
+  color: var(--primary-hover);
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
+}
+
+.activity-list, .attempt-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.activity-list:not(.compact) {
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.activity-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 0.95rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.activity-row:hover {
+  color: var(--ink);
+  background: var(--row-hover);
+}
+
+.activity-row:focus-visible, .lesson-link:focus-visible {
+  outline-offset: -4px;
+}
+
+.activity-icon {
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  color: var(--primary);
+  background: var(--primary-soft);
+  border-radius: var(--radius-sm);
+  place-items: center;
+}
+
+.activity-row-copy, .activity-row-meta {
+  display: grid;
+  gap: 0.15rem;
+  overflow-wrap: anywhere;
+}
+
+.activity-row-copy strong {
+  font-family: var(--font-display);
+  font-size: 1.07rem;
+  line-height: 1.3;
+}
+
+.activity-row-copy small, .activity-row-meta small {
+  color: var(--muted);
+  font-size: 0.77rem;
+}
+
+.activity-row-meta {
+  justify-items: end;
+}
+
+.activity-list.compact .activity-row {
+  gap: 0.55rem;
+  padding-inline: 0;
+}
+
+.activity-list.compact .activity-icon {
+  width: 1.85rem;
+  height: 1.85rem;
+  background: transparent;
+}
+
+.activity-detail h1, .lesson-page-header h1 {
+  max-width: 30ch;
+  overflow-wrap: anywhere;
+}
+
+.activity-detail-grid, .authoring-form {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.activity-detail-grid {
+  align-items: start;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.activity-detail-grid:has(.quiz-form) {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 55rem;
+}
+
+.activity-detail-panel {
+  min-width: 0;
+}
+
+.activity-detail-panel h2, .authoring-section h2 {
+  margin-bottom: 0.85rem;
+}
+
+.activity-detail-panel .section-heading h2 {
+  margin: 0;
+}
+
+.activity-attachment {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  color: var(--primary);
+  font-weight: 650;
+  text-decoration: none;
+  background: var(--primary-soft);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.activity-attachment small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
+.authoring-form {
+  max-width: 56rem;
+}
+
+.authoring-section {
+  display: grid;
+  gap: 0.95rem;
+  justify-items: stretch;
+}
+
+.authoring-section > button {
+  justify-self: start;
+}
+
+.choice-grid, .quiz-settings, .quiz-question-edit, .quiz-question {
+  min-width: 0;
+  margin: 0;
+}
+
+.choice-grid, .quiz-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 0;
+  border: 0;
+}
+
+.choice-grid legend, .quiz-settings legend {
+  margin-bottom: 0.55rem;
+  font-weight: 650;
+}
+
+.choice-card, .quiz-choice {
+  display: flex;
+  min-height: 2.85rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.choice-card:has(input:checked), .quiz-choice:has(input:checked) {
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
+}
+
+.choice-card input, .quiz-choice input, .quiz-option-edit input[type="radio"] {
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--primary);
+}
+
+.quiz-question-edit, .quiz-question {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem;
+  background: var(--module-head);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.quiz-question-edit legend, .quiz-question legend {
+  padding: 0 0.35rem;
+  color: var(--primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.quiz-option-edit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.quiz-question .reading {
+  margin: 0;
+  font-weight: 600;
+}
+
+.quiz-choice {
+  background: var(--surface);
+}
+
+.quiz-form .button {
+  justify-self: start;
+}
+
+.attempt-item {
+  border-top: 1px solid var(--border);
+}
+
+.attempt-item summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3.2rem;
+  padding-block: 0.65rem;
+  cursor: pointer;
+}
+
+.attempt-item summary::-webkit-details-marker, .classroom-index summary::-webkit-details-marker {
+  display: none;
+}
+
+.attempt-item[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.attempt-item time, .attempt-review span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.attempt-review {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.15rem;
+  padding-left: 1.35rem;
+  overflow-wrap: anywhere;
+}
+
+.attempt-review .review-correct {
+  color: var(--success);
+}
+
+.attempt-review .review-incorrect {
+  color: var(--warning);
+}
+
+.classroom-grid {
+  display: grid;
+  align-items: start;
+  grid-template-areas: "player index" "content index";
+  grid-template-columns: minmax(0, 1fr) minmax(11rem, 0.35fr);
+  gap: 1rem clamp(1rem, 2.5vw, 1.7rem);
+}
+
+.classroom-player { grid-area: player; min-width: 0; }
+.classroom-content { grid-area: content; min-width: 0; }
+
+.classroom-player .player-section, .classroom-player .no-video-progress {
+  margin: 0;
+}
+
+.classroom-index {
+  position: sticky;
+  top: 1.3rem;
+  grid-area: index;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.classroom-index summary, .classroom-prev-next {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.classroom-index summary { cursor: pointer; }
+.classroom-index details:not([open]) summary svg { transform: rotate(-90deg); }
+
+.classroom-index ol {
+  max-height: min(60vh, 35rem);
+  overflow-y: auto;
+  padding: 0.25rem;
+  margin: 0;
+  list-style: none;
+}
+
+.classroom-index li a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem;
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  overflow-wrap: anywhere;
+}
+
+.classroom-index li a:hover, .classroom-index li a[aria-current="page"] {
+  color: var(--primary-hover);
+  background: var(--primary-soft);
+}
+
+.classroom-prev-next { border-top: 1px solid var(--border); }
+
+.classroom-prev-next a {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.classroom-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.85rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.classroom-sections a {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  color: var(--primary);
+  font-size: 0.85rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.classroom-sections a:hover { text-decoration: underline; }
+.classroom-content h2 { scroll-margin-top: 5rem; }
+
+@media (max-width: 960px) {
+  .classroom-grid { grid-template-areas: "player" "index" "content"; grid-template-columns: minmax(0, 1fr); }
+  .classroom-index { position: static; }
+  .classroom-index ol { max-height: 14rem; }
+}
+
+@media (max-width: 640px) {
+  .activity-detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .activity-list:not(.compact) .activity-row { grid-template-columns: auto minmax(0, 1fr); gap: 0.45rem 0.7rem; }
+  .activity-row-meta { grid-column: 2; justify-items: start; }
+}

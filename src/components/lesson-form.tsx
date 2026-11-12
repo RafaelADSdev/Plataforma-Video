@@ -110,10 +110,6 @@ export function LessonForm({
           <p className="field-hint">Opcional.</p>
         </div>
       </div>
-      <label className="checkbox">
-        <input type="checkbox" name="requires_submission" defaultChecked={lesson?.requires_submission ?? false} />
-        <span><strong>Pedir entrega</strong><br /><span className="field-hint">O aluno poderá enviar ou substituir um PDF ou imagem.</span></span>
-      </label>
       <div className="field">
         <label htmlFor="materials">Materiais em PDF</label>
         <input className="input" id="materials" name="materials" type="file" accept="application/pdf,.pdf" multiple />

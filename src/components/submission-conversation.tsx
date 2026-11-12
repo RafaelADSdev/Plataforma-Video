@@ -15,8 +15,9 @@ import type { SubmissionMessage } from "@/types/domain";
 const subscribeToClient = () => () => {};
 
 export function SubmissionConversationDialog({
-  lessonId,
+  activityId,
   studentId,
+  userId,
   isStaff,
   studentName,
   fileName,
@@ -24,8 +25,9 @@ export function SubmissionConversationDialog({
   messages,
   open,
 }: {
-  lessonId: string;
+  activityId: string;
   studentId: string;
+  userId: string;
   isStaff: boolean;
   studentName: string;
   fileName: string;
@@ -158,7 +160,7 @@ export function SubmissionConversationDialog({
             )}
           </div>
           <div className="submission-dialog-form">
-            <SubmissionMessageForm lessonId={lessonId} studentId={studentId} isStaff={isStaff} />
+            <SubmissionMessageForm activityId={activityId} studentId={studentId} userId={userId} isStaff={isStaff} />
           </div>
         </div>
       </dialog>

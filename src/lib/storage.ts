@@ -1,6 +1,6 @@
-const allowedBuckets = new Set(["covers", "avatars", "materials", "submissions", "community", "feedback"]);
-
-export type StorageBucket = "covers" | "avatars" | "materials" | "submissions" | "community" | "feedback";
+const storageBuckets = ["covers", "avatars", "materials", "activity-materials", "submissions", "community", "feedback"] as const;
+const allowedBuckets = new Set<string>(storageBuckets);
+export type StorageBucket = typeof storageBuckets[number];
 
 export function isStorageBucket(value: string): value is StorageBucket {
   return allowedBuckets.has(value);

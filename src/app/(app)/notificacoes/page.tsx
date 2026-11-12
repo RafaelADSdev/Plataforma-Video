@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Bell, CheckCircle2, MessageCircle, MessageCircleQuestion, Send } from "lucide-react";
 import { openNotificationAction } from "@/app/actions/notifications";
 import { EmptyState } from "@/components/empty-state";
-import { requireProfessor } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { formatDateTimeInSaoPaulo } from "@/lib/time";
 import { createClient } from "@/lib/supabase/server";
 import type { Lesson, Notification, Thread } from "@/types/domain";
@@ -17,7 +17,7 @@ const typeInfo = {
 };
 
 export default async function NotificationsPage() {
-  const auth = await requireProfessor();
+  const auth = await requireUser();
   const supabase = await createClient();
   const { data } = await supabase
     .from("notifications")
@@ -27,25 +27,30 @@ export default async function NotificationsPage() {
   const notifications = (data ?? []) as Notification[];
   const lessonIds = [...new Set(notifications.flatMap((item) => item.lesson_id ? [item.lesson_id] : []))];
   const threadIds = [...new Set(notifications.flatMap((item) => item.thread_id ? [item.thread_id] : []))];
-  const [{ data: lessonsData }, { data: threadsData }] = await Promise.all([
+  const submissionIds = [...new Set(notifications.flatMap((item) => item.submission_id ? [item.submission_id] : []))];
+  const [{ data: lessonsData }, { data: threadsData }, { data: submissionsData }] = await Promise.all([
     lessonIds.length ? supabase.from("lessons").select("id,title").in("id", lessonIds) : Promise.resolve({ data: [] }),
     threadIds.length ? supabase.from("community_threads").select("id,title").in("id", threadIds) : Promise.resolve({ data: [] }),
+    submissionIds.length ? supabase.from("submissions").select("id,activities(title)").in("id", submissionIds) : Promise.resolve({ data: [] }),
   ]);
   const lessons = new Map(((lessonsData ?? []) as Pick<Lesson, "id" | "title">[]).map((item) => [item.id, item.title]));
   const threads = new Map(((threadsData ?? []) as Pick<Thread, "id" | "title">[]).map((item) => [item.id, item.title]));
+  const submissions = new Map(((submissionsData ?? []) as unknown as { id: string; activities: { title: string } | null }[])
+    .map((item) => [item.id, item.activities?.title]));
 
   return (
     <main className="container page notifications-page">
-      <div className="page-header"><div><h1>Notificações</h1><p className="page-description">Comentários, dúvidas, entregas e mensagens privadas que pedem a atenção da equipe.</p></div></div>
+      <div className="page-header"><div><h1>Notificações</h1><p className="page-description">{auth.isStaff ? "Acompanhe comentários, dúvidas, entregas e mensagens." : "Acompanhe as respostas dos professores nas suas entregas."}</p></div></div>
       {notifications.length === 0 ? (
-        <EmptyState title="Você não tem notificações"><p>Novos comentários, dúvidas, entregas e respostas aparecerão aqui.</p></EmptyState>
+        <EmptyState title="Você não tem notificações"><p>{auth.isStaff ? "A atividade da turma aparecerá aqui." : "As respostas nas suas entregas aparecerão aqui."}</p></EmptyState>
       ) : (
         <ol className="notification-list">
           {notifications.map((notification) => {
             const { Icon, label } = typeInfo[notification.type];
-            const targetTitle = notification.thread_id
+            const target = notification.thread_id
               ? threads.get(notification.thread_id)
               : notification.lesson_id ? lessons.get(notification.lesson_id) : null;
+            const targetTitle = (notification.submission_id ? submissions.get(notification.submission_id) : undefined) ?? target;
             return (
               <li key={notification.id} className={notification.read_at ? "read" : "unread"}>
                 <div className="notification-icon"><Icon aria-hidden="true" size={19} /></div>

@@ -39,6 +39,7 @@ export function LessonExperience({
   initialWatched,
   canTrack,
   comments,
+  curriculum,
   children,
 }: {
   lessonId: string;
@@ -48,6 +49,7 @@ export function LessonExperience({
   initialWatched: boolean;
   canTrack: boolean;
   comments: Comment[];
+  curriculum: React.ReactNode;
   children: React.ReactNode;
 }) {
   const playerHostRef = useRef<HTMLDivElement>(null);
@@ -152,6 +154,7 @@ export function LessonExperience({
 
   return (
     <>
+      <div className="classroom-player">
       {videoId ? (
         <section ref={playerSectionRef} className="player-section" aria-label="Vídeo da aula">
           <div className="video-frame"><div ref={playerHostRef} /></div>
@@ -201,6 +204,9 @@ export function LessonExperience({
         </div>
       ) : null}
 
+      </div>
+      {curriculum}
+      <div className="classroom-content">
       {children}
 
       <section className="comments-section" aria-labelledby="comments-title">
@@ -248,6 +254,7 @@ export function LessonExperience({
           </ol>
         )}
       </section>
+      </div>
     </>
   );
 }

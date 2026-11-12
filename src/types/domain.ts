@@ -22,9 +22,47 @@ export type Lesson = {
   content: string;
   youtube_url: string | null;
   position: number;
-  requires_submission: boolean;
   published_at: string;
   scheduled_for: string | null;
+};
+
+export type Activity = {
+  id: string;
+  module_id: string;
+  lesson_id: string | null;
+  kind: "file" | "quiz";
+  title: string;
+  instructions: string;
+  position: number;
+  published_at: string | null;
+  due_at: string | null;
+  support_path: string | null;
+  support_name: string | null;
+};
+
+export type QuizQuestion = {
+  id: string;
+  prompt: string;
+  options: { id: string; text: string }[];
+  correctOptionId?: string;
+};
+
+export type ActivityQuiz = {
+  revision: string;
+  questions: QuizQuestion[];
+  allowRetries: boolean;
+  showAnswers: boolean;
+  hasAttempt: boolean;
+};
+
+export type QuizAttempt = {
+  id: string;
+  user_id: string;
+  attempt_number: number;
+  answers: Record<string, string>;
+  correct_count: number;
+  question_count: number;
+  created_at: string;
 };
 
 export type Material = {
@@ -94,7 +132,7 @@ export type CommunityThreadAttachment = {
 
 export type Submission = {
   id: string;
-  lesson_id: string;
+  activity_id: string;
   user_id: string;
   storage_path: string;
   file_name: string;
@@ -107,7 +145,7 @@ export type Submission = {
 
 export type SubmissionMessage = {
   id: string;
-  lesson_id: string;
+  activity_id: string;
   student_id: string;
   author_id: string;
   body: string;
