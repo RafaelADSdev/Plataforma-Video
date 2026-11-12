@@ -121,5 +121,3 @@ supabase/migrations/  Esquema, permissões, buckets e migrações de dados
 ```
 
 Execute `npm run check` para rodar lint, checagem de tipos, testes e build. Para alterar a interface, consulte a [identidade visual](DESIGN.md). Para preparar uma instalação, migrar gravações ou verificar as permissões, use o [guia de publicação](docs/DEPLOY.md).
-
-Sala do Curso é um projeto independente do HubON.
