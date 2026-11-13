@@ -1653,16 +1653,75 @@ html[data-theme="dark"] .theme-icon-moon {
   }
 }
 
-.community-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.42fr);
-  gap: 2rem;
-  align-items: start;
+.community-header {
+  align-items: center;
 }
 
-.new-thread-panel {
-  position: sticky;
-  top: 6rem;
+.community-header > .button {
+  flex-shrink: 0;
+}
+
+.community-notice {
+  margin-bottom: 1.25rem;
+}
+
+.community-dialog {
+  width: min(calc(100% - 2rem), 34rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: var(--ink);
+  box-shadow: var(--shadow-menu);
+}
+
+.community-dialog::backdrop {
+  background: var(--backdrop);
+}
+
+.community-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.community-dialog-heading h2 {
+  margin-bottom: 0.25rem;
+}
+
+.community-dialog-heading p {
+  margin: 0;
+}
+
+.community-dialog-close {
+  flex: 0 0 2.75rem;
+  padding: 0;
+}
+
+.community-dialog .field,
+.community-dialog .input {
+  min-width: 0;
+}
+
+@media (max-width: 560px) {
+  .community-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .community-dialog-heading {
+    margin-bottom: 1rem;
+  }
+
+  .community-dialog .form-grid {
+    gap: 0.75rem;
+  }
+
+  .community-dialog .textarea {
+    min-height: 5.5rem;
+  }
 }
 
 .thread-list {
@@ -1701,21 +1760,6 @@ html[data-theme="dark"] .theme-icon-moon {
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.thread-card {
-  display: grid;
-}
-
-.thread-card.has-actions {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-}
-
-.thread-card-actions {
-  display: grid;
-  align-content: start;
-  padding: 0.85rem 1rem 0.85rem 0;
-}
-
 .thread-list a:hover {
   color: var(--ink);
   background: var(--row-hover);
@@ -1724,6 +1768,7 @@ html[data-theme="dark"] .theme-icon-moon {
 .thread-list a > span {
   display: grid;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .thread-list strong {
@@ -1877,17 +1922,6 @@ html[data-theme="dark"] .theme-icon-moon {
 
 .reply-form {
   margin-top: 2.5rem;
-}
-
-@media (max-width: 840px) {
-  .community-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .new-thread-panel {
-    position: static;
-    grid-row: 1;
-  }
 }
 
 .textarea.compact {
