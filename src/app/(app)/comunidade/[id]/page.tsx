@@ -5,16 +5,18 @@ import { notFound } from "next/navigation";
 import { createReplyAction } from "@/app/actions/community";
 import { ActionForm } from "@/components/action-form";
 import { CommunityAttachments } from "@/components/community-attachments";
+import { CommunityLikeButton } from "@/components/community-like-button";
 import { CommunityReplyManage } from "@/components/community-reply-manage";
 import { CommunityThreadManage } from "@/components/community-thread-manage";
 import { EmptyState } from "@/components/empty-state";
 import { UserAvatar } from "@/components/user-avatar";
 import { requireUser } from "@/lib/auth";
 import { canDeleteCommunityPost, canEditCommunityPost } from "@/lib/community-permissions";
+import { communityThreadFields, type ThreadWithLikes } from "@/lib/community-threads";
 import { publicDisplayName } from "@/lib/profile-name";
 import { formatDateTimeInSaoPaulo } from "@/lib/time";
 import { createClient } from "@/lib/supabase/server";
-import type { CommunityThreadAttachment, Profile, Reply, Thread } from "@/types/domain";
+import type { CommunityThreadAttachment, Profile, Reply } from "@/types/domain";
 
 export const metadata: Metadata = { title: "Dúvida" };
 
@@ -22,13 +24,14 @@ export default async function CommunityThreadPage({ params }: { params: Promise<
   const auth = await requireUser();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: threadData }, { data: repliesData }, { data: attachmentData }] = await Promise.all([
-    supabase.from("community_threads").select("id,course_id,author_id,title,body,created_at").eq("id", id).maybeSingle(),
+  const [{ data: threadData, error: threadError }, { data: repliesData }, { data: attachmentData }] = await Promise.all([
+    supabase.from("community_threads").select(communityThreadFields).eq("id", id).maybeSingle(),
     supabase.from("community_replies").select("id,thread_id,author_id,body,is_staff,created_at").eq("thread_id", id).order("created_at"),
     supabase.from("community_thread_attachments").select("id,thread_id,author_id,storage_path,file_name,mime_type,size_bytes,created_at").eq("thread_id", id).order("created_at"),
   ]);
+  if (threadError && threadError.code !== "22P02") throw new Error("Não foi possível carregar a dúvida.");
   if (!threadData) notFound();
-  const thread = threadData as Thread;
+  const thread = threadData as ThreadWithLikes;
   const replies = (repliesData ?? []) as Reply[];
   const attachments = (attachmentData ?? []) as CommunityThreadAttachment[];
   const ids = [...new Set([thread.author_id, ...replies.map((reply) => reply.author_id)])];
@@ -54,6 +57,13 @@ export default async function CommunityThreadPage({ params }: { params: Promise<
           canDelete={canDeleteCommunityPost(auth, thread.author_id)}
         />
         <CommunityAttachments attachments={attachments} />
+        <CommunityLikeButton
+          threadId={thread.id}
+          title={thread.title}
+          count={thread.like_count}
+          liked={thread.my_like.length > 0}
+          showLabel
+        />
       </article>
 
       <section aria-labelledby="replies-title" className="replies-section">

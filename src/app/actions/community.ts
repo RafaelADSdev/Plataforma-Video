@@ -12,6 +12,33 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ThreadActionState = ActionState & { threadId?: string };
 
+export async function setThreadLikeAction(
+  threadId: string,
+  _state: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const auth = await requireUser();
+  if (!postgresUuidSchema().safeParse(threadId).success) return actionError("Dúvida inválida.");
+
+  const liked = formData.get("liked");
+  if (liked !== "true" && liked !== "false") return actionError("Curtida inválida.");
+
+  const supabase = await createClient();
+  const likes = supabase.from("community_thread_likes");
+  const { error } = liked === "true"
+    ? await likes.upsert({ thread_id: threadId, user_id: auth.id }, {
+        onConflict: "thread_id,user_id",
+        ignoreDuplicates: true,
+      })
+    : await likes.delete().eq("thread_id", threadId).eq("user_id", auth.id);
+
+  if (error) return actionError("Não foi possível atualizar a curtida. Tente novamente.");
+
+  revalidatePath("/comunidade");
+  revalidatePath(`/comunidade/${threadId}`);
+  return { ok: true };
+}
+
 export async function createThreadAction(
   _state: ThreadActionState,
   formData: FormData,
