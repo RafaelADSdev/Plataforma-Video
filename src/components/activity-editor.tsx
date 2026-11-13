@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { FilePlus2, ListChecks, Plus, Trash2 } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import { saveActivityAction } from "@/app/actions/activities";
 import { sanitizeStorageName, storageFileUrl } from "@/lib/storage";
 import { createClient } from "@/lib/supabase/client";
@@ -23,20 +23,23 @@ function newQuestion(): QuizQuestion {
 export function ActivityEditor({
   modules,
   lessons,
+  kind,
   activity,
   quiz,
   initialLessonId,
+  initialModuleId,
 }: {
-  modules: Module[];
+  modules: Pick<Module, "id" | "title">[];
   lessons: Pick<Lesson, "id" | "module_id" | "title">[];
+  kind: Activity["kind"];
   activity?: Activity;
   quiz?: ActivityQuiz | null;
   initialLessonId?: string;
+  initialModuleId?: string;
 }) {
   const router = useRouter();
   const activityId = useRef(activity?.id);
   const staged = useRef<{ file: File; path: string } | null>(null);
-  const [kind, setKind] = useState<Activity["kind"]>(activity?.kind ?? "file");
   const [lessonId, setLessonId] = useState(activity?.lesson_id ?? initialLessonId ?? "");
   const [publication, setPublication] = useState(
     activity?.published_at ? isFutureDate(activity.published_at) ? "scheduled" : "now" : "draft",
@@ -103,21 +106,6 @@ export function ActivityEditor({
     }}>
       <section className="panel authoring-section" aria-labelledby="activity-content">
         <h2 id="activity-content">Conteúdo</h2>
-        {!activity ? (
-          <fieldset className="choice-grid">
-            <legend>Formato da atividade</legend>
-            {(["file", "quiz"] as const).map((value) => (
-              <label className="choice-card" key={value}>
-                <input type="radio" name="format" checked={kind === value} onChange={() => {
-                  setKind(value);
-                  if (value === "quiz" && !questions.length) setQuestions([newQuestion()]);
-                }} />
-                {value === "file" ? <FilePlus2 size={20} aria-hidden="true" /> : <ListChecks size={20} aria-hidden="true" />}
-                <span>{value === "file" ? "Entrega em arquivo" : "Questionário"}</span>
-              </label>
-            ))}
-          </fieldset>
-        ) : null}
         <div className="field"><label htmlFor="activity-title">Título</label><input id="activity-title" name="title" className="input" required minLength={2} maxLength={160} defaultValue={activity?.title} /></div>
         <div className="field"><label htmlFor="activity-instructions">Enunciado ou instruções</label><textarea id="activity-instructions" name="instructions" className="textarea" rows={4} maxLength={12000} defaultValue={activity?.instructions} /></div>
         <div className="form-row">
@@ -131,7 +119,7 @@ export function ActivityEditor({
             {selectedLesson ? (
               <input id="activity-module" className="input" readOnly value={modules.find((module) => module.id === selectedLesson.module_id)?.title ?? ""} />
             ) : (
-              <select id="activity-module" className="select" name="module_id" defaultValue={activity?.module_id ?? modules[0]?.id} required>
+              <select id="activity-module" className="select" name="module_id" defaultValue={activity?.module_id ?? initialModuleId ?? modules[0]?.id} required>
                 {modules.map((module) => <option key={module.id} value={module.id}>{module.title}</option>)}
               </select>
             )}
@@ -162,41 +150,78 @@ export function ActivityEditor({
             <label className="checkbox"><input type="checkbox" name="show_answers" defaultChecked={quiz?.showAnswers} /> Mostrar gabarito após o envio</label>
           </fieldset>
           {questions.map((question, index) => (
-            <fieldset key={question.id} className="quiz-question-edit" disabled={lockedQuiz}>
-              <legend>Questão {index + 1}</legend>
-              <div className="field">
-                <label htmlFor={`prompt-${question.id}`}>Enunciado</label>
-                <textarea id={`prompt-${question.id}`} className="textarea" rows={2} required maxLength={2000} value={question.prompt} onChange={(event) => {
-                  const prompt = event.target.value;
-                  changeQuestion(question.id, (item) => ({ ...item, prompt }));
-                }} />
+            <fieldset key={question.id} className="quiz-question-edit" aria-labelledby={`question-${question.id}`} disabled={lockedQuiz}>
+              <h3 className="quiz-question-edit-title" id={`question-${question.id}`}>Questão {index + 1}</h3>
+              <div className="quiz-question-edit-body">
+                <div className="field">
+                  <label htmlFor={`prompt-${question.id}`}>Enunciado</label>
+                  <textarea
+                    id={`prompt-${question.id}`}
+                    className="textarea"
+                    placeholder="Escreva a pergunta…"
+                    rows={3}
+                    required
+                    maxLength={2000}
+                    value={question.prompt}
+                    onChange={(event) => {
+                      const prompt = event.target.value;
+                      changeQuestion(question.id, (item) => ({ ...item, prompt }));
+                    }}
+                  />
+                </div>
+                <fieldset className="quiz-options-edit" aria-describedby={lockedQuiz ? undefined : `options-hint-${question.id}`}>
+                  <legend className="field-label">Alternativas</legend>
+                  {!lockedQuiz ? <p className="field-hint" id={`options-hint-${question.id}`}>Selecione a resposta correta.</p> : null}
+                  {question.options.map((option, optionIndex) => {
+                    const letter = String.fromCharCode(65 + optionIndex);
+                    const isCorrect = question.correctOptionId === option.id;
+
+                    return (
+                      <div className="quiz-option-edit" key={option.id}>
+                        <label className="quiz-option-select">
+                          <input
+                            type="radio"
+                            name={`correct-${question.id}`}
+                            aria-label={`Marcar alternativa ${letter} como correta`}
+                            checked={isCorrect}
+                            onChange={() => changeQuestion(question.id, (item) => ({ ...item, correctOptionId: option.id }))}
+                          />
+                          <span aria-hidden="true">{letter}</span>
+                        </label>
+                        <input
+                          className="input quiz-option-text"
+                          aria-label={`Texto da alternativa ${letter}`}
+                          placeholder="Resposta"
+                          required
+                          maxLength={500}
+                          value={option.text}
+                          onChange={(event) => {
+                            const text = event.target.value;
+                            changeQuestion(question.id, (item) => ({ ...item, options: item.options.map((choice) => choice.id === option.id ? { ...choice, text } : choice) }));
+                          }}
+                        />
+                        {isCorrect ? <span className="quiz-option-correct"><Check size={14} aria-hidden="true" /> Correta</span> : null}
+                        {!lockedQuiz ? (
+                          <button className="icon-button" type="button" aria-label={`Remover alternativa ${letter}`} disabled={question.options.length <= 2} onClick={() => {
+                            changeQuestion(question.id, (item) => {
+                              const options = item.options.filter((choice) => choice.id !== option.id);
+                              return { ...item, options, correctOptionId: item.correctOptionId === option.id ? options[0]?.id : item.correctOptionId };
+                            });
+                          }}><Trash2 size={17} aria-hidden="true" /></button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </fieldset>
               </div>
-              <div className="field">
-                <span className="field-label">Alternativas</span>
-                <p className="field-hint">Marque a alternativa correta no seletor à esquerda.</p>
-                {question.options.map((option, optionIndex) => (
-                  <div className="quiz-option-edit" key={option.id}>
-                    <input type="radio" name={`correct-${question.id}`} aria-label={`Marcar alternativa ${optionIndex + 1} como correta`}
-                      checked={question.correctOptionId === option.id} onChange={() => changeQuestion(question.id, (item) => ({ ...item, correctOptionId: option.id }))} />
-                    <input className="input" aria-label={`Alternativa ${optionIndex + 1}`} placeholder={`Alternativa ${optionIndex + 1}`} required maxLength={500} value={option.text} onChange={(event) => {
-                      const text = event.target.value;
-                      changeQuestion(question.id, (item) => ({ ...item, options: item.options.map((choice) => choice.id === option.id ? { ...choice, text } : choice) }));
-                    }} />
-                    <button className="icon-button" type="button" aria-label={`Remover alternativa ${optionIndex + 1}`} disabled={question.options.length <= 2} onClick={() => {
-                      changeQuestion(question.id, (item) => {
-                        const options = item.options.filter((choice) => choice.id !== option.id);
-                        return { ...item, options, correctOptionId: item.correctOptionId === option.id ? options[0]?.id : item.correctOptionId };
-                      });
-                    }}><Trash2 size={17} aria-hidden="true" /></button>
-                  </div>
-                ))}
-              </div>
-              {!lockedQuiz ? <div className="cluster">
+              {!lockedQuiz ? <div className="quiz-question-edit-actions">
                 <button className="button secondary small" type="button" disabled={question.options.length >= 6} onClick={() => {
                   const option = newOption();
                   changeQuestion(question.id, (item) => ({ ...item, options: [...item.options, option] }));
-                }}><Plus size={16} aria-hidden="true" /> Alternativa</button>
-                <button className="button ghost small" type="button" onClick={() => setQuestions((current) => current.filter((item) => item.id !== question.id))}>Remover questão</button>
+                }}><Plus size={16} aria-hidden="true" /> Adicionar alternativa</button>
+                <button className="button ghost small quiz-question-remove" type="button" onClick={() => setQuestions((current) => current.filter((item) => item.id !== question.id))}>
+                  <Trash2 size={16} aria-hidden="true" /> Remover questão
+                </button>
               </div> : null}
             </fieldset>
           ))}
@@ -229,7 +254,7 @@ export function ActivityEditor({
       {message ? <p className="form-message" role="alert">{message}</p> : null}
       <div className="cluster">
         <button type="submit" className="button" disabled={pending}>{pending ? "Salvando…" : publication === "draft" ? "Salvar rascunho" : publication === "scheduled" ? "Agendar atividade" : "Salvar e publicar"}</button>
-        <Link href={activity ? `/atividades/${activity.id}` : "/atividades"} className="button ghost">Cancelar</Link>
+        <Link href={activity ? `/atividades/${activity.id}` : initialLessonId ? `/lessons/${initialLessonId}` : initialModuleId ? `/course/modules/${initialModuleId}` : "/atividades"} className="button ghost">Cancelar</Link>
       </div>
     </form>
   );

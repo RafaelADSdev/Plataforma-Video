@@ -4,27 +4,30 @@ import { Check, Film, RotateCcw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { createLessonCommentAction } from "@/app/actions/lessons";
-import { PrivateVideoPlayer, type VideoControls } from "@/components/private-video-player";
+import { PrivateVideoPlayer, type PlaybackCoverage, type VideoCheckpoint, type VideoControls } from "@/components/private-video-player";
 import { UserAvatar } from "@/components/user-avatar";
+import { YouTubeVideoPlayer } from "@/components/youtube-video-player";
 import { publicDisplayName } from "@/lib/profile-name";
 import { formatVideoTime } from "@/lib/time";
 import type { Comment, Lesson } from "@/types/domain";
 
 export function LessonExperience({
-  lessonId, lessonTitle, videoStatus, initialSeconds, initialWatched, canTrack, comments, curriculum, children,
+  lessonId, lessonTitle, videoStatus, youtubeVideoId, initialSeconds, initialWatched, canTrack, requiresPlayback, comments, curriculum, children,
 }: {
   lessonId: string;
   lessonTitle: string;
   videoStatus: Lesson["video_status"];
+  youtubeVideoId: string | null;
   initialSeconds: number;
   initialWatched: boolean;
   canTrack: boolean;
+  requiresPlayback: boolean;
   comments: Comment[];
   curriculum: React.ReactNode;
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const playable = videoStatus === "ready";
+  const playable = Boolean(youtubeVideoId) || videoStatus === "ready";
   const videoRef = useRef<VideoControls>(null);
   const playerSectionRef = useRef<HTMLElement>(null);
   const progressQueue = useRef(Promise.resolve());
@@ -38,31 +41,33 @@ export function LessonExperience({
   const [commentMessage, setCommentMessage] = useState<{ ok: boolean; message: string } | null>(null);
   const [commentPending, startCommentTransition] = useTransition();
 
-  const persist = useCallback((lastSeconds: number, complete: boolean, manual = false) => {
+  const persist = useCallback((lastSeconds: number, complete: boolean, manual = false, playback?: PlaybackCoverage) => {
     const operation = progressQueue.current.then(async () => {
       const response = await fetch("/api/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId, lastSeconds: Math.min(24 * 60 * 60, lastSeconds), watched: complete, manual }),
+        body: JSON.stringify({ lessonId, lastSeconds: Math.min(24 * 60 * 60, lastSeconds), watched: complete, manual, playback }),
         keepalive: true,
       });
       if (!response.ok) throw new Error("progresso");
       const { watched: saved } = await response.json() as { watched: boolean };
+      const changed = watchedRef.current !== saved;
       watchedRef.current = saved;
       setWatched(saved);
       setProgressError("");
+      if (changed) router.refresh();
     });
     progressQueue.current = operation.catch(() => {
       setProgressError("Não foi possível salvar o progresso. Tente novamente.");
     });
     return operation;
-  }, [lessonId]);
+  }, [lessonId, router]);
 
-  const checkpoint = useCallback((seconds: number, duration: number, ended: boolean) => {
+  const checkpoint = useCallback<VideoCheckpoint>((seconds, duration, ended, coverage) => {
     if (!canTrack) return;
-    const completed = !suppressAutoMark.current && (ended || (duration > 0 && seconds / duration >= 0.9));
-    void persist(seconds, completed).catch(() => { /* The error appears below the player. */ });
-  }, [canTrack, persist]);
+    const completed = !requiresPlayback && !suppressAutoMark.current && (ended || (duration > 0 && seconds / duration >= 0.9));
+    void persist(seconds, completed, false, watchedRef.current ? undefined : coverage).catch(() => { /* The error appears below the player. */ });
+  }, [canTrack, persist, requiresPlayback]);
 
   function seek(seconds: number) {
     videoRef.current?.seek(seconds);
@@ -72,11 +77,14 @@ export function LessonExperience({
   return (
     <>
       <div className="classroom-player">
-        {videoStatus !== "none" ? (
+        {youtubeVideoId || videoStatus !== "none" ? (
           <section ref={playerSectionRef} className="player-section" aria-label="Vídeo da aula">
-            {playable ? (
+            {youtubeVideoId ? (
+              <YouTubeVideoPlayer key={youtubeVideoId} ref={videoRef} videoId={youtubeVideoId} title={lessonTitle}
+                startAt={initialWatched ? 0 : initialSeconds} trackCoverage={requiresPlayback} onCheckpoint={checkpoint} />
+            ) : playable ? (
               <PrivateVideoPlayer ref={videoRef} lessonId={lessonId} title={lessonTitle}
-                startAt={initialWatched ? 0 : initialSeconds} onCheckpoint={checkpoint} />
+                startAt={initialWatched ? 0 : initialSeconds} trackCoverage={requiresPlayback} onCheckpoint={checkpoint} />
             ) : (
               <div className="video-frame"><div className="video-placeholder">
                 <Film size={29} aria-hidden="true" /><p>Gravação ainda indisponível</p>
@@ -91,19 +99,22 @@ export function LessonExperience({
         ) : null}
         {canTrack ? (
           <div className="progress-actions">
-            <button className={`button ${watched ? "secondary" : ""}`} type="button" disabled={manualPending} onClick={async () => {
+            {requiresPlayback ? (
+              <p className={watched ? "badge success" : "meta"} role="status">
+                {watched ? <><Check size={17} aria-hidden="true" /> Aula concluída</> : "Assista a pelo menos 90% do vídeo para concluir esta aula."}
+              </p>
+            ) : <button className={`button ${watched ? "secondary" : ""}`} type="button" disabled={manualPending} onClick={async () => {
               const next = !watchedRef.current;
               suppressAutoMark.current = !next;
               setManualPending(true);
               try {
                 await persist(videoRef.current?.seconds() ?? initialSeconds, next, true);
-                router.refresh();
               } catch {
                 suppressAutoMark.current = false;
               } finally {
                 setManualPending(false);
               }
-            }}><Check size={17} aria-hidden="true" /> {manualPending ? "Salvando…" : watched ? "Desmarcar conclusão" : "Marcar como concluída"}</button>
+            }}><Check size={17} aria-hidden="true" /> {manualPending ? "Salvando…" : watched ? "Desmarcar conclusão" : "Marcar como concluída"}</button>}
             {progressError ? <p className="field-error" role="alert">{progressError}</p> : null}
           </div>
         ) : null}

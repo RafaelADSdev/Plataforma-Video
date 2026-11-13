@@ -159,7 +159,7 @@ export default async function ActivityPage({
 
   return (
     <main className="container page activity-detail">
-      <nav className="lesson-breadcrumb" aria-label="Localização"><Link href="/atividades">Atividades</Link><span aria-hidden="true">/</span><span>{module.data?.title}</span></nav>
+      <nav className="lesson-breadcrumb" aria-label="Localização"><Link href="/atividades">Atividades</Link><span aria-hidden="true">/</span><Link href={`/course/modules/${activity.module_id}`}>{module.data?.title ?? "Módulo"}</Link></nav>
       <header className="page-header">
         <div>
           <p className="content-type"><ActivityIcon kind={activity.kind} />{activityKindLabel(activity.kind)}</p>

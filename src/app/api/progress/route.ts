@@ -8,6 +8,13 @@ const payloadSchema = z.object({
   lastSeconds: z.number().finite().min(0).max(24 * 60 * 60),
   watched: z.boolean().optional(),
   manual: z.boolean().optional(),
+  playback: z.object({
+    durationMs: z.number().int().min(1).max(86_400_000),
+    ranges: z.array(z.object({
+      start_ms: z.number().int().min(0).max(86_400_000),
+      end_ms: z.number().int().min(1).max(86_400_000),
+    })).max(256),
+  }).optional(),
 });
 
 export async function POST(request: Request) {
@@ -30,6 +37,8 @@ export async function POST(request: Request) {
     p_seconds: Math.floor(parsed.data.lastSeconds),
     p_watched: Boolean(parsed.data.watched),
     p_manual: Boolean(parsed.data.manual),
+    p_duration_ms: parsed.data.playback?.durationMs,
+    p_played_ms: parsed.data.playback?.ranges,
   });
   if (error) return Response.json({ error: "Não foi possível salvar o progresso." }, { status: error.code === "42501" ? 404 : 500 });
   return Response.json({ watched });

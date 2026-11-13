@@ -11,7 +11,13 @@ import { isFutureDate, toSaoPauloDateTimeInput } from "@/lib/time";
 import { validateMaterialFile } from "@/lib/validation";
 import type { Lesson, Material, Module } from "@/types/domain";
 
-export function LessonForm({ modules, lesson, materials = [] }: { modules: Module[]; lesson?: Lesson; materials?: Material[] }) {
+export function LessonForm({ modules, lesson, materials = [], initialModuleId, streamUploadAvailable }: {
+  modules: Pick<Module, "id" | "title">[];
+  lesson?: Lesson;
+  materials?: Material[];
+  initialModuleId?: string;
+  streamUploadAvailable: boolean;
+}) {
   const router = useRouter();
   const savedLessonId = useRef(lesson?.id);
   const newLessonId = useRef<string | null>(null);
@@ -19,11 +25,12 @@ export function LessonForm({ modules, lesson, materials = [] }: { modules: Modul
   const [result, setResult] = useState<LessonActionState>({ ok: false });
   const [pending, setPending] = useState(false);
   const [videoStatus, setVideoStatus] = useState(lesson?.video_status ?? "none");
+  const [youtubeUrl, setYouTubeUrl] = useState(lesson?.youtube_video_id ? `https://www.youtube.com/watch?v=${lesson.youtube_video_id}` : "");
   const [publication, setPublication] = useState(
     lesson?.published_at ? isFutureDate(lesson.published_at) ? "scheduled" : "now" : "draft",
   );
   const waitingForVideo = videoStatus !== "none" && videoStatus !== "ready";
-  const blockedPublication = waitingForVideo && publication !== "draft"
+  const blockedPublication = waitingForVideo && !youtubeUrl.trim() && publication !== "draft"
     && !(publication === "now" && lesson?.published_at && !isFutureDate(lesson.published_at));
 
   return (
@@ -107,7 +114,7 @@ export function LessonForm({ modules, lesson, materials = [] }: { modules: Modul
         <div className="form-row">
           <div className="field">
             <label htmlFor="module_id">Módulo</label>
-            <select className="select" id="module_id" name="module_id" defaultValue={lesson?.module_id ?? modules[0]?.id} required>
+            <select className="select" id="module_id" name="module_id" defaultValue={lesson?.module_id ?? initialModuleId ?? modules[0]?.id} required>
               {modules.map((module) => <option key={module.id} value={module.id}>{module.title}</option>)}
             </select>
             {result.fieldErrors?.module_id ? <p className="field-error">{result.fieldErrors.module_id}</p> : null}
@@ -134,10 +141,23 @@ export function LessonForm({ modules, lesson, materials = [] }: { modules: Modul
       </section>
 
       <section className="panel authoring-section" aria-labelledby="lesson-recording">
-        <h2 id="lesson-recording">Gravação privada</h2>
-        {lesson ? <LessonVideoUpload lessonId={lesson.id} initialStatus={lesson.video_status} onStatus={setVideoStatus} /> : (
-          <p className="muted">Salve a aula como rascunho para adicionar uma gravação antes de publicar.</p>
+        <h2 id="lesson-recording">Gravação da aula</h2>
+        <div className="field">
+          <label htmlFor="lesson-youtube-url">Link do YouTube</label>
+          <input className="input" id="lesson-youtube-url" name="youtube_url" inputMode="url" maxLength={2048}
+            value={youtubeUrl} onChange={(event) => setYouTubeUrl(event.target.value)}
+            aria-invalid={Boolean(result.fieldErrors?.youtube_url)}
+            aria-describedby={result.fieldErrors?.youtube_url ? "lesson-youtube-hint lesson-youtube-error" : "lesson-youtube-hint"} />
+          <p className="field-hint" id="lesson-youtube-hint">Use um vídeo público ou não listado com incorporação permitida. Qualquer pessoa com o link pode assistir a um vídeo não listado.</p>
+          {result.fieldErrors?.youtube_url ? <p className="field-error" id="lesson-youtube-error">{result.fieldErrors.youtube_url}</p> : null}
+        </div>
+        {streamUploadAvailable ? <p className="muted">Com o link preenchido, a aula exibe o YouTube. Deixe o campo em branco para usar a gravação privada.</p> : (
+          <p className="muted">O envio direto de arquivo está indisponível nesta instalação.</p>
         )}
+        {lesson ? <LessonVideoUpload lessonId={lesson.id} initialStatus={lesson.video_status} onStatus={setVideoStatus}
+          uploadAvailable={streamUploadAvailable} /> : streamUploadAvailable ? (
+          <p className="muted">Para enviar um arquivo de vídeo, clique em Salvar rascunho e continue na edição da aula.</p>
+        ) : null}
       </section>
 
       <section className="panel authoring-section" aria-labelledby="lesson-publication">
@@ -163,14 +183,14 @@ export function LessonForm({ modules, lesson, materials = [] }: { modules: Modul
           <p className="field-hint">Horário de São Paulo.</p>
           {result.fieldErrors?.published_at_local ? <p className="field-error">{result.fieldErrors.published_at_local}</p> : null}
         </div> : null}
-        {blockedPublication ? <p className="form-message" role="status">Espere a gravação ficar pronta para publicar ou salve como rascunho.</p> : null}
+        {blockedPublication ? <p className="form-message" role="status">Adicione um link do YouTube, espere a gravação privada ficar pronta ou salve como rascunho.</p> : null}
       </section>
       {result.message ? <p className="form-message" role="alert">{result.message}</p> : null}
       <div className="cluster">
         <button className="button" type="submit" disabled={pending || blockedPublication}>
           {pending ? "Salvando…" : publication === "draft" ? "Salvar rascunho" : publication === "scheduled" ? "Agendar aula" : "Salvar e publicar"}
         </button>
-        <Link className="button ghost" href={lesson ? `/lessons/${lesson.id}` : "/"}>Cancelar</Link>
+        <Link className="button ghost" href={lesson ? `/lessons/${lesson.id}` : initialModuleId ? `/course/modules/${initialModuleId}` : "/"}>Cancelar</Link>
       </div>
     </form>
   );

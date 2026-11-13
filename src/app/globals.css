@@ -173,7 +173,6 @@ h3,
 .workspace-nav a,
 .app-name,
 th,
-.module-number,
 .lesson-position,
 .timestamp {
   font-family: var(--font-display);
@@ -1047,17 +1046,42 @@ html[data-theme="dark"] .theme-icon-moon {
   border-radius: var(--radius-lg);
 }
 
-.module-header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+.module-summary {
+  display: flex;
   align-items: center;
-  gap: 0.9rem;
-  padding: 1.05rem 1.2rem;
   background: var(--module-head);
-  border-bottom: 1px solid var(--border);
 }
 
-.module-number,
+.module-summary-link {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 1rem 1.2rem;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.module-summary-link:hover {
+  color: var(--ink);
+  background: var(--row-hover);
+}
+
+.module-summary-link:focus-visible {
+  outline-offset: -4px;
+}
+
+.module-summary > .reorder-pair {
+  padding-inline-end: 0.6rem;
+}
+
+.module-summary-arrow {
+  flex: none;
+  margin-inline-start: auto;
+  color: var(--primary);
+}
+
 .lesson-position {
   display: grid;
   color: var(--primary-hover);
@@ -1069,33 +1093,49 @@ html[data-theme="dark"] .theme-icon-moon {
   place-items: center;
 }
 
-.module-number {
-  width: 2.35rem;
-  height: 2.35rem;
+.module-title-wrap {
+  min-width: 0;
 }
 
-.module-title-wrap h3,
-.module-title-wrap p {
+.module-title-wrap h3 {
   margin-bottom: 0;
   overflow-wrap: anywhere;
+}
+
+.module-description {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.module-title-wrap .module-description {
+  font-size: 0.9rem;
 }
 
 .module-inline-edit {
   padding: 1rem 1.15rem;
   background: var(--warning-soft);
-  border-bottom: 1px solid var(--warning-line);
+  border-top: 1px solid var(--warning-line);
 }
 
-.module-edit-form {
+.module-inline-edit .form-grid > .button {
+  justify-self: start;
+}
+
+.module-progression-fields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.35fr) auto;
-  align-items: end;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-.module-edit-form .form-message {
-  grid-column: 1 / -1;
-  grid-row: 2;
+.module-progression-fields legend {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  font-weight: 700;
 }
 
 .reorder-pair {
@@ -1160,7 +1200,7 @@ html[data-theme="dark"] .theme-icon-moon {
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.lesson-link:hover {
+a.lesson-link:hover {
   color: var(--ink);
   background: var(--row-hover);
 }
@@ -1209,15 +1249,6 @@ html[data-theme="dark"] .theme-icon-moon {
     grid-template-columns: 1fr;
   }
 
-  .module-edit-form {
-    grid-template-columns: 1fr;
-  }
-
-  .module-edit-form .form-message {
-    grid-column: auto;
-    grid-row: auto;
-  }
-
   .lesson-row {
     display: grid;
   }
@@ -1240,10 +1271,12 @@ html[data-theme="dark"] .theme-icon-moon {
 
 .lesson-breadcrumb {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 1rem;
   color: var(--muted);
   font-size: 0.88rem;
+  overflow-wrap: anywhere;
 }
 
 .lesson-page-header {

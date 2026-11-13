@@ -11,15 +11,13 @@ export function ActivityList({
   items,
   locationNames,
   staff = false,
-  compact = false,
 }: {
   items: ActivitySummary[];
   locationNames?: Map<string, string>;
   staff?: boolean;
-  compact?: boolean;
 }) {
   return (
-    <ul className={`activity-list${compact ? " compact" : ""}`}>
+    <ul className="activity-list">
       {items.map((item) => {
         const publication = activityPublication(item.published_at);
         const count = activityResponseCount(item);
@@ -34,14 +32,12 @@ export function ActivityList({
                 <small>{activityKindLabel(item.kind)}{locationNames?.get(item.id) ? ` · ${locationNames.get(item.id)}` : ""}</small>
                 {item.due_at ? <small>Prazo {formatDateTimeInSaoPaulo(item.due_at)}</small> : null}
               </span>
-              {compact ? <ArrowUpRight size={16} aria-hidden="true" /> : (
-                <span className="activity-row-meta">
-                  <span className={`badge ${staff ? publication.tone : completed ? "success" : overdue ? "warning" : ""}`}>
-                    {staff ? publication.label : completed ? item.kind === "file" ? "Enviada" : "Respondido" : overdue ? "Em atraso" : "Pendente"}
-                  </span>
-                  {staff ? <small>{count} {item.kind === "file" ? count === 1 ? "entrega" : "entregas" : count === 1 ? "tentativa" : "tentativas"}</small> : null}
+              <span className="activity-row-meta">
+                <span className={`badge ${staff ? publication.tone : completed ? "success" : overdue ? "warning" : ""}`}>
+                  {staff ? publication.label : completed ? item.kind === "file" ? "Enviada" : "Respondido" : overdue ? "Em atraso" : "Pendente"}
                 </span>
-              )}
+                {staff ? <small>{count} {item.kind === "file" ? count === 1 ? "entrega" : "entregas" : count === 1 ? "tentativa" : "tentativas"}</small> : null}
+              </span>
             </Link>
           </li>
         );
@@ -50,14 +46,11 @@ export function ActivityList({
   );
 }
 
-export function ActivitySidePanel({ items, staff }: { items: ActivitySummary[]; staff: boolean }) {
+export function ActivitySidePanel({ staff }: { staff: boolean }) {
   return (
     <section className="panel study-side-panel">
       <span className="study-side-icon"><ClipboardList size={21} aria-hidden="true" /></span>
-      <h2>{staff ? "Atividades da turma" : "Atividades pendentes"}</h2>
-      {items.length ? <ActivityList items={items} compact staff={staff} /> : (
-        <p className="muted">{staff ? "Publique exercícios e acompanhe as respostas." : "Você está em dia com as atividades publicadas."}</p>
-      )}
+      <h2>Atividades da turma</h2>
       <Link href="/atividades" className="inline-link">{staff ? "Gerenciar atividades" : "Ver todas as atividades"} <ArrowUpRight size={17} aria-hidden="true" /></Link>
     </section>
   );

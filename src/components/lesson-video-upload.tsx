@@ -29,11 +29,12 @@ async function fingerprint(file: File) {
 }
 
 export function LessonVideoUpload({
-  lessonId, initialStatus, onStatus,
+  lessonId, initialStatus, onStatus, uploadAvailable,
 }: {
   lessonId: string;
   initialStatus: LessonVideoState;
   onStatus: (status: LessonVideoState) => void;
+  uploadAvailable: boolean;
 }) {
   const endpoint = `/api/lessons/${lessonId}/video`;
   const currentUpload = useRef<Upload | null>(null);
@@ -63,9 +64,9 @@ export function LessonVideoUpload({
         const status = await response.json() as Summary;
         if (controller.signal.aborted) return;
         applyStatus(status);
-        if (status.uploadState === "uploading" || status.uploadState === "processing") timer = setTimeout(poll, 4500);
+        if (uploadAvailable && (status.uploadState === "uploading" || status.uploadState === "processing")) timer = setTimeout(poll, 4500);
       } catch {
-        if (!controller.signal.aborted && initialStatus !== "none") {
+        if (!controller.signal.aborted && uploadAvailable && initialStatus !== "none") {
           timer = setTimeout(poll, 9000);
         }
       }
@@ -75,7 +76,7 @@ export function LessonVideoUpload({
       controller.abort();
       if (timer) clearTimeout(timer);
     };
-  }, [endpoint, applyStatus, epoch, initialStatus]);
+  }, [endpoint, applyStatus, epoch, initialStatus, uploadAvailable]);
 
   useEffect(() => () => { void currentUpload.current?.abort(); }, []);
 
@@ -158,6 +159,11 @@ export function LessonVideoUpload({
   }
 
   const currentStatus = summary.uploadState ?? summary.videoStatus;
+  const originalRecording = summary.originalUrl ? <p className="muted">
+    <a href={summary.originalUrl} target="_blank" rel="noreferrer">Gravação original no YouTube</a>
+  </p> : null;
+  if (!uploadAvailable) return originalRecording;
+
   return (
     <div className="video-upload">
       <div className="cluster" role="status">
@@ -166,10 +172,7 @@ export function LessonVideoUpload({
         {summary.videoStatus === "ready" && summary.uploadState ? <span className="badge success">Gravação anterior disponível</span> : null}
       </div>
       {summary.videoStatus === "migration_required" ? <p className="muted">Envie o arquivo original da aula para disponibilizar a gravação privada.</p> : null}
-      {summary.originalUrl ? <p className="muted">
-        <a href={summary.originalUrl} target="_blank" rel="noreferrer">Gravação original no YouTube</a>
-        {summary.videoStatus === "ready" ? " · Após conferir o novo vídeo, torne a gravação original privada." : null}
-      </p> : null}
+      {originalRecording}
       {summary.uploadState === "processing" ? <p className="muted">O vídeo aparecerá aqui quando terminar de processar. Você pode voltar a esta página depois.</p> : (
         <div className="field">
           <label htmlFor="lesson-video">{summary.videoStatus === "ready" ? "Escolher vídeo substituto" : "Arquivo de vídeo"}</label>

@@ -18,10 +18,14 @@ export class StreamError extends Error {
 function allowedOrigins() {
   const origins = [...new Set((process.env.CLOUDFLARE_STREAM_ALLOWED_ORIGINS ?? "")
     .split(",").map((origin) => origin.trim().toLowerCase()).filter(Boolean))];
-  if (!origins.length || origins.some((origin) => !/^[a-z0-9.-]+(?::[0-9]+)?$/.test(origin))) {
-    throw new StreamError(503);
-  }
-  return origins;
+  return origins.length && origins.every((origin) => /^[a-z0-9.-]+(?::[0-9]+)?$/.test(origin)) ? origins : null;
+}
+
+export function isStreamUploadConfigured() {
+  return streamUidPattern.test(process.env.CLOUDFLARE_ACCOUNT_ID ?? "")
+    && /^[a-z0-9]+$/.test(process.env.CLOUDFLARE_STREAM_CUSTOMER_CODE ?? "")
+    && streamUidPattern.test(process.env.CLOUDFLARE_STREAM_SIGNING_KEY_ID ?? "")
+    && Boolean(process.env.CLOUDFLARE_STREAM_API_TOKEN && process.env.CLOUDFLARE_STREAM_SIGNING_JWK && allowedOrigins());
 }
 
 async function streamRequest(path: string, init: RequestInit = {}) {
@@ -38,7 +42,6 @@ async function streamRequest(path: string, init: RequestInit = {}) {
 }
 
 export async function createStreamUpload(size: number, title: string, expiresAt: string) {
-  allowedOrigins();
   const metadata = (key: string, value: string) => `${key} ${Buffer.from(value).toString("base64")}`;
   const maxDuration = Number(process.env.CLOUDFLARE_STREAM_MAX_DURATION_SECONDS ?? 14400);
   if (!Number.isInteger(maxDuration) || maxDuration < 1 || maxDuration > 36000) throw new StreamError(503);
@@ -76,6 +79,7 @@ export async function getStreamVideo(uid: string) {
 
 export async function ensurePrivateStream(video: StreamVideo) {
   const origins = allowedOrigins();
+  if (!origins) throw new StreamError(503);
   const verified = (record: StreamVideo) => record.requireSignedURLs === true
     && record.allowedOrigins?.length === origins.length
     && origins.every((origin) => record.allowedOrigins?.includes(origin));

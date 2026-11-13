@@ -34,6 +34,7 @@ export async function saveStudyPlanDay(courseId: string, day: RoutineDay, note: 
 
   if (error) return actionError("Não foi possível salvar este dia. Tente novamente.");
 
+  revalidatePath("/");
   revalidatePath("/cronograma");
   return { ok: true };
 }

@@ -11,6 +11,7 @@ export type Module = {
   id: string;
   course_id: string;
   title: string;
+  description: string | null;
   position: number;
   scheduled_for: string | null;
 };
@@ -21,9 +22,15 @@ export type Lesson = {
   title: string;
   content: string;
   video_status: "none" | "migration_required" | "uploading" | "processing" | "failed" | "ready";
+  youtube_video_id: string | null;
   position: number;
   published_at: string | null;
   scheduled_for: string | null;
+};
+
+export type CourseLesson = Pick<Lesson, "id" | "module_id" | "title" | "video_status" | "youtube_video_id" | "position" | "published_at"> & {
+  lock_reason: "module" | "lesson" | null;
+  requires_playback: boolean;
 };
 
 export type Activity = {

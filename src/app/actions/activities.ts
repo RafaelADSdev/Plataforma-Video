@@ -55,7 +55,7 @@ export async function saveActivityAction(
 
   const supabase = await createClient();
   const { data: existing, error: existingError } = await supabase.from("activities")
-    .select("published_at,lesson_id,support_path,support_name").eq("id", activityId).maybeSingle();
+    .select("module_id,published_at,lesson_id,support_path,support_name").eq("id", activityId).maybeSingle();
   if (existingError) return actionError("Não foi possível consultar a atividade. Tente novamente.");
   const publishedAt = input.publication === "now"
     ? existing?.published_at && Date.parse(existing.published_at) <= Date.now() ? existing.published_at : new Date().toISOString()
@@ -99,6 +99,8 @@ export async function saveActivityAction(
   });
   if (error) return actionError(error.code === "P0001" ? error.message : "Não foi possível salvar a atividade. Tente novamente.");
   revalidatePath("/");
+  revalidatePath(`/course/modules/${input.moduleId}`);
+  if (existing && existing.module_id !== input.moduleId) revalidatePath(`/course/modules/${existing.module_id}`);
   revalidatePath("/atividades");
   revalidatePath(`/atividades/${activityId}`);
   if (input.lessonId) revalidatePath(`/lessons/${input.lessonId}`);
@@ -188,5 +190,6 @@ export async function reorderCourseItemAction(
   });
   if (error) return actionError("Não foi possível alterar a ordem. Tente novamente.");
   revalidatePath("/");
+  revalidatePath(`/course/modules/${moduleId}`);
   return { ok: true };
 }

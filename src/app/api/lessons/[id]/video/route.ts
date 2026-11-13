@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createStreamUpload, discardStreamUpload, ensurePrivateStream, getStreamVideo, StreamError } from "@/lib/cloudflare-stream";
+import { createStreamUpload, discardStreamUpload, ensurePrivateStream, getStreamVideo, isStreamUploadConfigured, StreamError } from "@/lib/cloudflare-stream";
 import { authorizeLessonMedia, clearUpload, mediaColumns, mediaResponse, sameRequestOrigin, type LessonMedia } from "@/lib/lesson-media";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractYouTubeVideoId } from "@/lib/youtube";
@@ -30,6 +30,7 @@ async function getMedia(id: string) {
 
 function refreshLesson(id: string) {
   revalidatePath("/");
+  revalidatePath("/course/modules/[id]", "page");
   revalidatePath(`/lessons/${id}`);
   revalidatePath(`/lessons/${id}/edit`);
 }
@@ -40,7 +41,7 @@ export async function GET(_request: Request, { params }: Context) {
   if (access.error) return access.error;
   try {
     const media = await getMedia(id);
-    if (!media?.upload_id || media.upload_state === "failed") return mediaResponse(summarize(media));
+    if (!media?.upload_id || media.upload_state === "failed" || !isStreamUploadConfigured()) return mediaResponse(summarize(media));
     const deadline = Date.parse(media.upload_expires_at ?? "");
     const next = { ...media };
     if (media.pending_uid) {
@@ -86,6 +87,7 @@ export async function POST(request: Request, { params }: Context) {
   if (access.error) return access.error;
   const input = uploadInput.safeParse(await request.json().catch(() => null));
   if (!input.success) return mediaResponse({ error: "Selecione um arquivo válido de até 30 GB." }, 400);
+  if (!isStreamUploadConfigured()) return mediaResponse({ error: "O envio direto está indisponível. Use um link do YouTube." }, 503);
 
   const { size, fingerprint } = input.data;
   const reservation = crypto.randomUUID();

@@ -7,6 +7,7 @@ type StreamPlayer = {
   currentTime: number;
   duration: number;
   paused: boolean;
+  played: TimeRanges;
   play(): Promise<void>;
   addEventListener(name: string, callback: () => void): void;
   removeEventListener(name: string, callback: () => void): void;
@@ -19,6 +20,26 @@ export type VideoControls = {
   seek(seconds: number): void;
   seconds(): number | null;
 };
+
+export type PlaybackCoverage = {
+  durationMs: number;
+  ranges: { start_ms: number; end_ms: number }[];
+};
+
+export type VideoCheckpoint = (seconds: number, duration: number, ended: boolean, coverage?: PlaybackCoverage) => void;
+
+function playedCoverage(duration: number, played: TimeRanges): PlaybackCoverage | undefined {
+  const durationMs = Math.round(duration * 1000);
+  if (!Number.isFinite(durationMs) || durationMs <= 0 || durationMs > 86_400_000) return;
+
+  const ranges: PlaybackCoverage["ranges"] = [];
+  for (let index = Math.max(0, played.length - 256); index < played.length; index++) {
+    const start_ms = Math.max(0, Math.floor(played.start(index) * 1000));
+    const end_ms = Math.min(durationMs, Math.ceil(played.end(index) * 1000));
+    if (end_ms > start_ms) ranges.push({ start_ms, end_ms });
+  }
+  return { durationMs, ranges };
+}
 
 let sdk: Promise<void> | null = null;
 function loadStreamSdk() {
@@ -50,13 +71,14 @@ function loadStreamSdk() {
 }
 
 export function PrivateVideoPlayer({
-  ref, lessonId, title, startAt, onCheckpoint,
+  ref, lessonId, title, startAt, trackCoverage, onCheckpoint,
 }: {
   ref: Ref<VideoControls>;
   lessonId: string;
   title: string;
   startAt: number;
-  onCheckpoint: (seconds: number, duration: number, ended: boolean) => void;
+  trackCoverage: boolean;
+  onCheckpoint: VideoCheckpoint;
 }) {
   const iframe = useRef<HTMLIFrameElement>(null);
   const player = useRef<StreamPlayer | null>(null);
@@ -132,7 +154,9 @@ export function PrivateVideoPlayer({
       if (!timeline.initialized || (!changed && !ended)) return;
       lastCheckpoint = Date.now();
       changed = false;
-      onCheckpoint(timeline.seconds, Number(instance.duration) || 0, ended);
+      const duration = Number(instance.duration) || 0;
+      const coverage = trackCoverage && instance.played ? playedCoverage(duration, instance.played) : undefined;
+      onCheckpoint(timeline.seconds, duration, ended, coverage);
     };
     const timeChanged = () => {
       const wasReady = timeline.initialized;
@@ -165,7 +189,7 @@ export function PrivateVideoPlayer({
       player.current = null;
       timeline.initialized = false;
     };
-  }, [authorization, onCheckpoint]);
+  }, [authorization, onCheckpoint, trackCoverage]);
 
   return (
     <div className="video-frame">

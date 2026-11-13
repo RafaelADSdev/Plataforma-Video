@@ -141,6 +141,7 @@ export async function createScheduleSlotAction(
   });
 
   if (error) return scheduleWriteError(error, "Não foi possível adicionar o horário. Tente novamente.");
+  if (auth.isStaff) revalidatePath("/");
   revalidatePath("/cronograma");
   return { ok: true, message: "Horário adicionado." };
 }
@@ -176,6 +177,7 @@ export async function updateScheduleSlotAction(
   const { error, data } = await query.select("id").maybeSingle();
   if (error) return scheduleWriteError(error, "Não foi possível salvar o horário. Tente novamente.");
   if (!data) return actionError("Horário não encontrado.");
+  if (auth.isStaff) revalidatePath("/");
   revalidatePath("/cronograma");
   return { ok: true, message: "Horário atualizado." };
 }
@@ -196,6 +198,7 @@ export async function deleteScheduleSlotAction(slotId: string): Promise<ActionSt
   const { error, data } = await query.select("id").maybeSingle();
   if (error) return actionError("Não foi possível excluir o horário. Tente novamente.");
   if (!data) return actionError("Horário não encontrado.");
+  if (auth.isStaff) revalidatePath("/");
   revalidatePath("/cronograma");
   return { ok: true, message: "Horário excluído." };
 }

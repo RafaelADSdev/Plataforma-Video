@@ -10,6 +10,26 @@ import { createClient } from "@/lib/supabase/server";
 
 const uuid = postgresUuidSchema();
 const dateValue = z.union([z.literal(""), z.iso.date("Use uma data válida.")]);
+const moduleFields = z.object({
+  title: z.string().trim().min(2, "Digite o título do módulo.").max(120, "Use até 120 caracteres."),
+  description: z.string().trim().max(320, "Use até 320 caracteres."),
+  scheduled_for: dateValue,
+});
+
+function moduleFormValues(formData: FormData) {
+  return {
+    title: formData.get("title"),
+    description: formData.get("description") ?? "",
+    scheduled_for: formData.get("scheduled_for") ?? "",
+  };
+}
+
+function moduleProgression(formData: FormData) {
+  return {
+    lessons_in_order: formData.get("lessons_in_order") === "on",
+    require_previous_modules: formData.get("require_previous_modules") === "on",
+  };
+}
 
 export async function updateCourseAction(
   courseId: string,
@@ -54,20 +74,16 @@ export async function createModuleAction(
   formData: FormData,
 ): Promise<ActionState> {
   await requireProfessor();
-  const parsed = z.object({
-    course_id: uuid,
-    title: z.string().trim().min(2, "Digite o título do módulo.").max(120),
-    scheduled_for: dateValue,
-  }).safeParse({
+  const parsed = moduleFields.extend({ course_id: uuid }).safeParse({
+    ...moduleFormValues(formData),
     course_id: formData.get("course_id"),
-    title: formData.get("title"),
-    scheduled_for: formData.get("scheduled_for") ?? "",
   });
 
   if (!parsed.success) {
     const fields = parsed.error.flatten().fieldErrors;
     return actionError("Revise os campos do módulo.", {
       title: fields.title?.[0] ?? "",
+      description: fields.description?.[0] ?? "",
       scheduled_for: fields.scheduled_for?.[0] ?? "",
     });
   }
@@ -86,8 +102,10 @@ export async function createModuleAction(
   const { error } = await supabase.from("modules").insert({
     course_id: parsed.data.course_id,
     title: parsed.data.title,
+    description: parsed.data.description || null,
     scheduled_for: parsed.data.scheduled_for || null,
     position: (last?.position ?? 0) + 1,
+    ...moduleProgression(formData),
   });
 
   if (error) return actionError("Não foi possível criar o módulo. Tente novamente.");
@@ -101,13 +119,7 @@ export async function updateModuleAction(
   formData: FormData,
 ): Promise<ActionState> {
   await requireProfessor();
-  const parsed = z.object({
-    title: z.string().trim().min(2, "Digite o título do módulo.").max(120),
-    scheduled_for: dateValue,
-  }).safeParse({
-    title: formData.get("title"),
-    scheduled_for: formData.get("scheduled_for") ?? "",
-  });
+  const parsed = moduleFields.safeParse(moduleFormValues(formData));
 
   if (!uuid.safeParse(moduleId).success) {
     return actionError("Módulo inválido.");
@@ -116,6 +128,7 @@ export async function updateModuleAction(
     const fields = parsed.error.flatten().fieldErrors;
     return actionError("Revise os campos do módulo.", {
       title: fields.title?.[0] ?? "",
+      description: fields.description?.[0] ?? "",
       scheduled_for: fields.scheduled_for?.[0] ?? "",
     });
   }
@@ -123,11 +136,14 @@ export async function updateModuleAction(
   const supabase = await createClient();
   const { error } = await supabase.from("modules").update({
     title: parsed.data.title,
+    description: parsed.data.description || null,
     scheduled_for: parsed.data.scheduled_for || null,
+    ...moduleProgression(formData),
   }).eq("id", moduleId);
 
   if (error) return actionError("Não foi possível salvar o módulo.");
   revalidatePath("/");
+  revalidatePath("/course/modules/[id]", "page");
   revalidatePath("/cronograma");
   return { ok: true, message: "Módulo atualizado." };
 }
@@ -168,5 +184,6 @@ export async function reorderModuleAction(
   }
 
   revalidatePath("/");
+  revalidatePath("/course/modules/[id]", "page");
   return { ok: true };
 }
